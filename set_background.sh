@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 # Define the image path
-local_image="$HOME/zone01-config/Background.jpeg"
+local_image="$HOME/Zone01_Desk_cfg//Background.jpeg"
 
 # Function to open file explorer and select an image file
 select_image_file() {
@@ -33,5 +33,5 @@ fi
 
 # applies the background on both light and dark mode
 
-gsettings set org.gnome.desktop.background picture-uri-dark "file://${background_image}"
-gsettings set org.gnome.desktop.background picture-uri "file://${background_image}"
+gsettings set org.gnome.desktop.background picture-uri-dark "file://${background_image}" 2>/dev/null
+gsettings set org.gnome.desktop.background picture-uri "file://${background_image}" 2>/dev/null

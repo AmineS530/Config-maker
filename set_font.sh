@@ -20,7 +20,7 @@ if [[ $CONFIRMATION == "y" || $CONFIRMATION == "Y" ]]; then
     if [ -f "fonts/$DisplayFont.ttf" ]; then
         echo "Display font is $DisplayFont"
         # Set the display font for the GNOME interface
-        gsettings set org.gnome.desktop.interface font-name "'$DisplayFont 12'"
+        gsettings set org.gnome.desktop.interface font-name "'$DisplayFont 12'"  2>/dev/null
     else
         echo "Aborted. Font not found, please adjust set_font.sh"
     fi
@@ -29,7 +29,7 @@ else
 fi
 
 # Set the monospace font for the GNOME interface
-gsettings set org.gnome.desktop.interface monospace-font-name "'$TerminalFont 12'"
+gsettings set org.gnome.desktop.interface monospace-font-name "'$TerminalFont 12'" 2>/dev/null
 
 # Get the default profile ID for gnome-terminal
 PROFILE_ID=$(dconf list /org/gnome/terminal/legacy/profiles:/ | grep -oP '[^/]+')
