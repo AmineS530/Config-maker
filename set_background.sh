@@ -33,5 +33,5 @@ fi
 
 # applies the background on both light and dark mode
 
-#gsettings set org.gnome.desktop.background picture-uri-dark "file://${background_image}"
-#gsettings set org.gnome.desktop.background picture-uri "file://${background_image}"
+gsettings set org.gnome.desktop.background picture-uri-dark "file://${background_image}"
+gsettings set org.gnome.desktop.background picture-uri "file://${background_image}"

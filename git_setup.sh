@@ -33,4 +33,3 @@ if [[ $CONFIRMATION == "y" || $CONFIRMATION == "Y" ]]; then
 else
   echo -e "\n${ORANGE}Aborted. No changes have been made.${RESET}"
 fi
-
