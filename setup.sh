@@ -1,5 +1,13 @@
 #!/bin/zsh
-#* Made by asadik with chatGPT and love *#
+
+# ANSI color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+#*  -------------------------------  Made by asadik with chatGPT and love  -------------------------------  *#
 
 # after forking and adding ur custom background / adjusting the script to your preference put the link of your repo here (your repo should be public)
 download_link="https://github.com/AmineS530/Config-maker.git"
@@ -29,15 +37,6 @@ fi
 git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
 echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
 
-# Function to prompt for yes/no confirmation
-#!/bin/zsh
-
-# ANSI color codes
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
 
 # Function to prompt for yes/no confirmation
 confirm() {
