@@ -36,4 +36,4 @@ PROFILE_ID=$(dconf list /org/gnome/terminal/legacy/profiles:/ | grep -oP '[^/]+'
 
 # Set the terminal font for the default profile
 dconf write /org/gnome/terminal/legacy/profiles:/:$PROFILE_ID/font "'$TerminalFont 12'" > /dev/null 2>&1
-dconf write /org/gnome/terminal/legacy/profiles:/:$PROFILE_ID/use-system-font false /dev/null 2>&1
+dconf write /org/gnome/terminal/legacy/profiles:/:$PROFILE_ID/use-system-font false > /dev/null 2>&1
