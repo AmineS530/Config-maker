@@ -20,12 +20,10 @@ if [ -d "$destination_dir" ]; then
     echo -e "${YELLOW}Directory $destination_dir already exists. Overwriting...${NC}"
     # Remove existing directory and clone the repository
     rm -rf "$destination_dir"
-    git clone --quiet --depth=1 "$download_link" "$destination_dir" && cd "$destination_dir"
 else
     echo -e "${CYAN}Cloning repository into $destination_dir...${NC}"
-    # Directory does not exist, clone the repository
-    git clone --quiet --depth=1 "$download_link" "$destination_dir" && cd "$destination_dir"
 fi
+git clone --quiet --depth=1 "$download_link" "$destination_dir" && cd "$destination_dir"
 
 # Move the premade p10k settings and zshrc
 
@@ -52,7 +50,7 @@ else
     # Clone terminal theme
     echo -e "${CYAN}Cloning Powerlevel10k repository...${NC}"
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
-    echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >> ~/.zshrc
+    echo 'ZSH_THEME="powerlevel10k/powerlevel10k"' >>~/.zshrc
 fi
 
 # Function to prompt for yes/no confirmation
@@ -74,15 +72,12 @@ if confirm "Change display and terminal fonts?\nRecommended to at least change t
     zsh set_font.sh
 fi
 
-# Prompt and execute git_setup.sh
-if confirm "Set up your Git/ea configs for first use"; then
-    zsh git_setup.sh
-fi
-
 # Prompt and execute set_background.sh
 if confirm "Apply a background on both light and dark modes"; then
     zsh set_background.sh
 fi
+
+zsh git_setup.sh
 
 # Prompt and execute set_theme.sh
 if confirm "Change the GNOME theme"; then
@@ -90,4 +85,4 @@ if confirm "Change the GNOME theme"; then
 fi
 
 # Forward to zsh whenever terminal auto-starts bash
-printf "SHELL=/bin/zsh\nexec /bin/zsh -l\n" >> ~/.bashrc
+printf "SHELL=/bin/zsh\nexec /bin/zsh -l\n" >>~/.bashrc

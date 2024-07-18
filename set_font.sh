@@ -18,11 +18,11 @@ printf "\033[0;33mWould you like to use a different font for display?\033[0m (y/
 read CONFIRMATION
 if [[ $CONFIRMATION == "y" || $CONFIRMATION == "Y" ]]; then
     if [ -f "fonts/$DisplayFont.ttf" ]; then
-        echo -e "\033[0;32mDisplay font is $DisplayFont\033[0m"
+        echo -e "\033[32mDisplay font is $DisplayFont\033[0m"
         # Set the display font for the GNOME interface
         gsettings set org.gnome.desktop.interface font-name "'$DisplayFont 12'" 2>/dev/null
     else
-        echo -e "\033[0;31mAborted. Font not found, please adjust set_font.sh\033[0m"
+        echo -e "\033[31mAborted. Font not found, please adjust set_font.sh\033[0m"
     fi
 else
     echo -e "\033[33mLeaving display font on default\033[0m"
