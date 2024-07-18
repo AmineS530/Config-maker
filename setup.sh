@@ -67,10 +67,6 @@ confirm() {
     esac
 }
 
-# Prompt and execute set_font.sh
-if confirm "Change display and terminal fonts?\nRecommended to at least change terminal font if using p10k"; then
-    zsh set_font.sh
-fi
 
 # Prompt and execute set_background.sh
 if confirm "Apply a background on both light and dark modes"; then
@@ -78,13 +74,18 @@ if confirm "Apply a background on both light and dark modes"; then
 fi
 
 # Get git/ea configs
-if confirm "Change the GNOME theme"; then
+if confirm "set up git settings"; then
     zsh git_setup.sh
 fi
 
 # Prompt and execute set_theme.sh
 if confirm "Change the GNOME theme"; then
     zsh set_theme.sh
+fi
+
+# Prompt and execute set_font.sh
+if confirm "Change display and terminal fonts?\nRecommended to at least change terminal font if using p10k"; then
+    zsh set_font.sh
 fi
 
 # Forward to zsh whenever terminal auto-starts bash
