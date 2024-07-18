@@ -50,7 +50,7 @@ else
     # Clone terminal theme
     echo -e "${CYAN}Cloning Powerlevel10k repository...${NC}"
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
-    echo 'ZSH_THEME="powerlevel10k/powerlevel10k"' >>~/.zshrc
+    echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
 fi
 
 # Function to prompt for yes/no confirmation
@@ -77,7 +77,10 @@ if confirm "Apply a background on both light and dark modes"; then
     zsh set_background.sh
 fi
 
-zsh git_setup.sh
+# Get git/ea configs
+if confirm "Change the GNOME theme"; then
+    zsh git_setup.sh
+fi
 
 # Prompt and execute set_theme.sh
 if confirm "Change the GNOME theme"; then
