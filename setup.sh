@@ -7,7 +7,7 @@ YELLOW='\033[0;33m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-#*  -------------------------------  Made by asadik with chatGPT and love  -------------------------------  *#
+#*  <-------------------------------  Made by asadik with chatGPT and love  ------------------------------->  *#
 
 # after forking and adding ur custom background / adjusting the script to your preference put the link of your repo here (your repo should be public)
 download_link="https://github.com/AmineS530/Config-maker.git"
@@ -26,7 +26,7 @@ fi
 git clone --quiet --depth=1 "$download_link" "$destination_dir" && cd "$destination_dir"
 
 # Move the premade p10k settings and zshrc
-
+mv .p10k.zsh ~/.p10k.zsh && mv .zshrc ~/.zshrc
 # Check for .p10k.zsh file
 if [ -f ".p10k.zsh" ]; then
     mv .p10k.zsh ~/.p10k.zsh
@@ -67,26 +67,26 @@ confirm() {
     esac
 }
 
-
 # Prompt and execute set_background.sh
-if confirm "Apply a background on both light and dark modes"; then
+if confirm "Would you like to change the background?"; then
     zsh set_background.sh
 fi
 
 # Get git/ea configs
-if confirm "set up git settings"; then
+if confirm "setup github/gitea settings for first use"; then
     zsh git_setup.sh
 fi
 
 # Prompt and execute set_theme.sh
-if confirm "Change the GNOME theme"; then
+if confirm "Change the device theme"; then
     zsh set_theme.sh
 fi
 
 # Prompt and execute set_font.sh
-if confirm "Change display and terminal fonts?\nRecommended to at least change terminal font if using p10k"; then
-    zsh set_font.sh
-fi
+zsh set_font.sh
 
 # Forward to zsh whenever terminal auto-starts bash
 printf "SHELL=/bin/zsh\nexec /bin/zsh -l\n" >>~/.bashrc
+
+# Done
+printf "Please restart your terminal to apply\nIn case of encountring a problem send a PM to a.sadik on discord"
