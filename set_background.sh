@@ -5,7 +5,7 @@ local_image="$HOME/Zone01_Desk_cfg//Background.jpeg"
 
 # Function to open file explorer and select an image file
 select_image_file() {
-    FILE_PATH=$(zenity --file-selection --title="Select an Image File" --file-filter="Images | *.png *.jpg *.jpeg ")
+    FILE_PATH=$(zenity --file-selection --title="Select an Image File" --file-filter="Images | *.png *.jpg *.jpeg " 2>/dev/null)
     if [ $? -eq 0 ]; then
         echo "A file was selected"
         selected_file=$FILE_PATH
