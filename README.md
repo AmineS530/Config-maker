@@ -4,7 +4,7 @@
         + Changes terminal settings and defaults using zsh for better experience
         + Prompts to change wallpaper upon using, you can choose your own, or select one of the pre installed ones from the folder
         + Changes the theme based on preference
-        + Sets up github for first time use and to remember your password whenever you use `git push` or `gp`
+        + Sets up github/gitea for first time use and to remember your password whenever you use `git push` or `gp`
         + changes default terminal font for compatibility with terminal theme
 ## Requirements :
 - zsh terminal.
