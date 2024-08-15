@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 # Define the image path
-local_image="$HOME/Zone01_Desk_cfg//Background.jpeg"
+local_image="$HOME/Zone01_Desk_cfg/Background.jpeg"
 
 # Function to open file explorer and select an image file
 select_image_file() {
@@ -21,6 +21,7 @@ if [ -f "$local_image" ]; then
     background_image=$local_image
 else
     echo "File does not exist at: $local_image. Opening file explorer."
+    echo "You can find some options at $HOME/Zone01_Desk_cfg/wallpapers"
     # Call the function to select an image file
     select_image_file
     if [ $? -eq 0 ]; then
