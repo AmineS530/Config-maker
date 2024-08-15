@@ -13,7 +13,7 @@
 + open terminal and type ```zsh``` and oh my zsh should start downloading, then whene asked to make zsh ur default type `n`
 
 ## Usage :
-- Download current release or `setup.sh` from the repository
+- Download current [release](https://github.com/AmineS530/Config-maker/releases) or `setup.sh` from the [repository](https://github.com/AmineS530/Config-maker/blob/main/setup.sh)
 - Run it using
 ```zsh
 zsh setup.sh
@@ -29,7 +29,7 @@ zsh [stript_name].sh
 
 #### I didn't enter my name or email correctly during first time use
 
-go to ~/Zone01_Desk_cfg and execute the following:
+go to `~/Zone01_Desk_cfg` and execute the following:
 ```zsh
 zsh git_setup.sh
 ```
