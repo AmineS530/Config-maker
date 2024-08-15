@@ -85,6 +85,9 @@ fi
 # Prompt and execute set_font.sh
 zsh set_font.sh
 
+# Makes you use french and english layouts
+gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us'), ('xkb', 'fr')]" > /dev/null 2>&1
+
 # Forward to zsh whenever terminal auto-starts bash
 printf "SHELL=/bin/zsh\nexec /bin/zsh -l\n" >>~/.bashrc
 
