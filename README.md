@@ -9,9 +9,11 @@
 ## Requirements :
 - zsh terminal.
 - Oh My Zsh installed.
+### how to get zsh ready (at campus)? 
++ open terminal and type ```zsh``` and oh my zsh should start downloading, then whene asked to make zsh ur default type `n`
 
 ## Usage :
-- Download only `setup.sh` from the repo.
+- Download current release or `setup.sh` from the repository
 - Run it using
 ```zsh
 zsh setup.sh
