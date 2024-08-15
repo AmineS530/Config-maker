@@ -1,5 +1,6 @@
 ## Informations :
    - This script was made to make setting up your session after changing it/resetting it easier/less painful
+   - feel free to fork and adjust it to your needs :)
         ####    features
         + Changes terminal settings and defaults using zsh for better experience
         + Prompts to change wallpaper upon using, you can choose your own, or select one of the pre installed ones from the folder
