@@ -11,15 +11,15 @@ NC='\033[0m' # No Color
 themes=("Adwaita" "Adwaita-dark" "Default" "Emacs" "HighContrast" "Yaru" "Yaru-bark" "Yaru-bark-dark" "Yaru-blue" "Yaru-blue-dark" "Yaru-dark" "Yaru-dark-hdpi" "Yaru-dark-xhdpi" "Yaru-hdpi" "Yaru-magenta" "Yaru-magenta-dark" "Yaru-olive" "Yaru-olive-dark" "Yaru-prussiangreen" "Yaru-prussiangreen-dark" "Yaru-purple" "Yaru-purple-dark" "Yaru-red" "Yaru-red-dark" "Yaru-sage" "Yaru-sage-dark" "Yaru-viridian" "Yaru-viridian-dark")
 
 # Ask the user to choose a theme type
-echo -e "${YELLOW}Do you want Light or Dark mode? [1] light | [2] dark : ${NC}"
+echo -e "${YELLOW}Do you want Light or Dark mode? |[1] dark | [2] light|: ${NC}"
 read mode
 
 # Filter themes based on the selected mode
 filtered_themes=()
 for theme in "${themes[@]}"; do
-    if [[ "$mode" == "2" && "$theme" =~ "dark" ]]; then
+    if [[ "$mode" == "1" && "$theme" =~ "dark" ]]; then
         filtered_themes+=("$theme")
-    elif [[ "$mode" == "1" && ! "$theme" =~ "dark" ]]; then
+    elif [[ "$mode" == "2" && ! "$theme" =~ "dark" ]]; then
         filtered_themes+=("$theme")
     fi
 done
@@ -44,7 +44,7 @@ if [[ "$theme_index" =~ ^[0-9]+$ && $theme_index -ge 1 && $theme_index -le ${#fi
     sleep 1
 
     # Set color scheme
-    if [[ "$mode" == "dark" ]]; then
+    if [[ "$mode" == "1" ]]; then
         gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' 2>/dev/null
     else
         gsettings set org.gnome.desktop.interface color-scheme 'default' 2>/dev/null
