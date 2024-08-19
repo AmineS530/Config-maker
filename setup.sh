@@ -67,14 +67,12 @@ confirm() {
     esac
 }
 
+# Makes you use french and english layouts
+gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us'), ('xkb', 'fr')]" > /dev/null 2>&1
+
 # Prompt and execute set_background.sh
 if confirm "Would you like to change the background?"; then
     zsh set_background.sh
-fi
-
-# Get git/ea configs
-if confirm "setup github/gitea settings for first use"; then
-    zsh git_setup.sh
 fi
 
 # Prompt and execute set_theme.sh
@@ -82,11 +80,13 @@ if confirm "Change the device theme"; then
     zsh set_theme.sh
 fi
 
+# Get git/ea configs
+if confirm "setup github/gitea settings for first use"; then
+    zsh git_setup.sh
+fi
+
 # Prompt and execute set_font.sh
 zsh set_font.sh
-
-# Makes you use french and english layouts
-gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us'), ('xkb', 'fr')]" > /dev/null 2>&1
 
 # Forward to zsh whenever terminal auto-starts bash
 printf "SHELL=/bin/zsh\nexec /bin/zsh -l\n" >>~/.bashrc
