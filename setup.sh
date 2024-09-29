@@ -1,10 +1,10 @@
 #!/bin/zsh
 
 # ANSI color codes
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-CYAN='\033[0;36m'
+RED='\033[1;0;31m'
+GREEN='\033[1;0;32m'
+YELLOW='\033[1;0;33m'
+CYAN='\033[1;0;36m'
 NC='\033[0m' # No Color
 
 #*  <-------------------------------  Made by asadik with chatGPT and love  ------------------------------->  *#
