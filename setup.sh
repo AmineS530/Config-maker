@@ -9,22 +9,6 @@ NC='\033[0m' # No Color
 
 #*  <-------------------------------  Made by asadik with chatGPT and love  ------------------------------->  *#
 
-# after forking and adding ur custom background / adjusting the script to your preference put the link of your repo here (your repo should be public)
-download_link="https://github.com/AmineS530/Config-maker.git"
-
-# Clones the settings repo
-destination_dir="$HOME/Zone01_Desk_cfg"
-
-# Check if the directory already exists
-if [ -d "$destination_dir" ]; then
-    echo -e "${YELLOW}Directory $destination_dir already exists. Overwriting...${NC}"
-    # Remove existing directory and clone the repository
-    rm -rf "$destination_dir"
-else
-    echo -e "${CYAN}Cloning repository into $destination_dir...${NC}"
-fi
-git clone --quiet --depth=1 "$download_link" "$destination_dir" && cd "$destination_dir"
-
 # Move the premade p10k settings and zshrc
 mv .p10k.zsh ~/.p10k.zsh && mv .zshrc ~/.zshrc
 # Check for .p10k.zsh file
