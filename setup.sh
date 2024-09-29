@@ -74,6 +74,3 @@ zsh set_font.sh
 
 # Forward to zsh whenever terminal auto-starts bash
 printf "SHELL=/bin/zsh\nexec /bin/zsh -l\n" >>~/.bashrc
-
-# Done
-printf "Please restart your terminal to apply\nIn case of encountring a problem send a PM to a.sadik on discord"
