@@ -14,10 +14,10 @@
 + open terminal and type ```zsh``` and oh my zsh should start downloading, then whene asked to make zsh ur default type `n`
 
 ## Usage :
-- Download current [release](https://github.com/AmineS530/Config-maker/releases) or `setup.sh` from the [repository](https://github.com/AmineS530/Config-maker/blob/main/setup.sh)
+- Download current [release](https://github.com/AmineS530/Config-maker/releases) or `Makefile` from the [repository](https://github.com/AmineS530/Config-maker/blob/main/Makefile)
 - Run it using
 ```zsh
-zsh setup.sh
+make
 ```
 
 ## Tips :
