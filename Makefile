@@ -20,10 +20,8 @@ all : setup
 setup: getFiles
 	@cd $(destination_dir) && zsh setup.sh
 
-
 getFiles:
 # Check if the directory already exists
-
 	@if [ -d "$(destination_dir)" ]; then \
 		echo "$(YELLOW)Directory $(destination_dir) already exists. Overwriting...$(NC)"; \
 		rm -rf "$(destination_dir)"; \
@@ -33,9 +31,10 @@ getFiles:
 	git clone --quiet --depth=1 "$(download_link)" "$(destination_dir)" && cd "$(destination_dir)"
 
 docker:
-	@echo "\033[1m\033[92mGetting docker ready for first use\033[0m"
+	@echo "\033[1m\033[92mGetting docker ready for first use\nPlease Wait...\033[0m"
 	@curl -fsSL https://get.docker.com/rootless 2>/dev/null | sh >/dev/null 2>&1
-	@$$(sleep 2)
-	$$(export PATH=$(HOME)/bin:$$PATH)
-	$$(export DOCKER_HOST=unix://$(XDG_RUNTIME_DIR)/docker.sock)
+	@$$(sleep 1)
+	@echo "\033[1m\033[92mCopy paste the following command to start docker in rootless mode:\033[0m"
+	export PATH=$(HOME)/bin:$$PATH
+	export DOCKER_HOST=unix://$(XDG_RUNTIME_DIR)/docker.sock
 	@echo "\033[1m\033[92mDocker environment is set up for rootless mode.\033[0m"
