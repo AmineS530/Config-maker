@@ -1,3 +1,9 @@
+# Public Ubuntu Configuration For Campus
+### ToDo:
+- make [prompt] `as in make git to execute the git setup script without navigating to the script manually`.
+- theme script can be confusing as it displays full name of the theme which can be confusing, also make it to get name of the themes depending on the mashine rather than what's predefined.
+- More wallpaper options.
+- set-up a variable file that can be customized for your own settings after forking
 ## Informations :
    - This script was made to make setting up your session after changing it/resetting it easier/less painful
    - feel free to fork and adjust it to your needs :)
@@ -7,14 +13,14 @@
         + Changes the theme based on preference
         + Sets up github/gitea for first time use and to remember your password whenever you use `git push` or `gp`
         + changes default terminal font for compatibility with terminal theme
-## Requirements :
-- zsh terminal.
-- Oh My Zsh installed.
-### how to get zsh ready (at campus)? 
-+ open terminal and type ```zsh``` and oh my zsh should start downloading, then whene asked to make zsh ur default type `n`
+        + sets up docker easily with `make docker`
 
+## Requirements :
+- zsh terminal + Oh My Zsh installed.
+  
 ## Usage :
 - Download current [release](https://github.com/AmineS530/Config-maker/releases) or `Makefile` from the [repository](https://github.com/AmineS530/Config-maker/blob/main/Makefile)
+  `If downloading the makefile from the repository make sure to remove the ending '.txt'`
 - Run it using
 ```zsh
 make
