@@ -38,3 +38,14 @@ docker:
 	export PATH=$(HOME)/bin:$$PATH
 	export DOCKER_HOST=unix://$(XDG_RUNTIME_DIR)/docker.sock
 	@echo "\033[1m\033[92mDocker environment is set up for rootless mode.\033[0m"
+
+# for zsh haters
+uninstall:
+	@echo "\033[1m\033[92mRemoving zsh from being the default shell\033[0m"
+	@$$(sed -i '/SHELL=\/bin\/zsh/d' ~/.bashrc )
+	@$$(sed -i '/exec \/bin\/zsh -l/d' ~/.bashrc)
+	@echo "\033[1m\033[92mEnjoy Bash :))\033[0m"
+	
+zsh:
+	@echo "\033[1m\033[92mEnabling zsh as default shell :)\033[0m"
+	@$$(printf "SHELL=/bin/zsh\nexec /bin/zsh -l\n" >>~/.bashrc)
