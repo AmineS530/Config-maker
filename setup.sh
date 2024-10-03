@@ -79,6 +79,6 @@ fi
 
 # Prompt and execute set_font.sh
 zsh set_font.sh
-*/
+
 # Forward to zsh whenever terminal auto-starts bash
 printf "SHELL=/bin/zsh\nexec /bin/zsh -l\n" >>~/.bashrc
