@@ -26,7 +26,8 @@ getFiles:
     	echo "${GREEN}Oh-my-zsh is already installed, continuing...${NC}" ;\
 	else \
   		echo "${YELLOW}Installing Oh-my-zsh...${NC}" \
-   		sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" --unattended; \
+		wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh && \
+		sh install.sh --unattended \
 	fi;
 
 # Check if the directory already exists
