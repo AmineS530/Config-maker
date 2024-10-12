@@ -17,19 +17,20 @@ all : setup
 	@printf "Please restart your terminal to apply\nIn case of encountring a problem send a PM to a.sadik on discord"
 
 
-setup: getFiles
+setup: OMZ getFiles
 	@cd $(destination_dir) && zsh setup.sh
 
-getFiles:
+OMZ:
 # checks for oh-my-zsh
 	@if [ -d "$$HOME/.oh-my-zsh" ]; then \
     	echo "${GREEN}Oh-my-zsh is already installed, continuing...${NC}" ;\
 	else \
   		echo "${YELLOW}Installing Oh-my-zsh...${NC}" \
-		wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh && \
-		sh install.sh --unattended \
+		$$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh) && \
+		sh install.sh --unattended ;\
 	fi;
 
+getFiles:
 # Check if the directory already exists
 	@if [ -d "$(destination_dir)" ]; then \
 		echo "$(YELLOW)Directory $(destination_dir) already exists. Overwriting...$(NC)"; \
@@ -42,7 +43,6 @@ getFiles:
 docker:
 	@echo "\033[1m\033[92mGetting docker ready for first use\nPlease Wait...\033[0m"
 	@curl -fsSL https://get.docker.com/rootless 2>/dev/null | sh >/dev/null 2>&1
-	@$$(sleep 1)
 	@echo "\033[1m\033[92mCopy paste the following command to start docker in rootless mode:\033[0m"
 	export PATH=$(HOME)/bin:$$PATH
 	export DOCKER_HOST=unix://$(XDG_RUNTIME_DIR)/docker.sock

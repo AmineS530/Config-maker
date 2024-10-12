@@ -8,7 +8,12 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # List of available themes
-themes=("Adwaita" "Adwaita-dark" "Default" "Emacs" "HighContrast" "Yaru" "Yaru-bark" "Yaru-bark-dark" "Yaru-blue" "Yaru-blue-dark" "Yaru-dark" "Yaru-dark-hdpi" "Yaru-dark-xhdpi" "Yaru-hdpi" "Yaru-magenta" "Yaru-magenta-dark" "Yaru-olive" "Yaru-olive-dark" "Yaru-prussiangreen" "Yaru-prussiangreen-dark" "Yaru-purple" "Yaru-purple-dark" "Yaru-red" "Yaru-red-dark" "Yaru-sage" "Yaru-sage-dark" "Yaru-viridian" "Yaru-viridian-dark")
+themes=()
+
+# Loop through each theme directory and get its basename
+for theme in /usr/share/themes/*; do
+    themes+=("$(basename "$theme")")
+done
 
 # Ask the user to choose a theme type
 echo -e "${YELLOW}Do you want Light or Dark mode? |[1] dark | [2] light|: ${NC}"

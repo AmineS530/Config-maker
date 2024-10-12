@@ -55,17 +55,17 @@ confirm() {
 gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us'), ('xkb', 'fr')]" >/dev/null 2>&1
 
 # Prompt and execute set_background.sh
-if confirm "Would you like to change the background?"; then
+if confirm "Change the background?"; then
     zsh set_background.sh
 fi
 
 # Prompt and execute set_theme.sh
-if confirm "Change the device theme"; then
+if confirm "Change session theme [Dark/Light]"; then
     zsh set_theme.sh
 fi
 
 # Get git/ea configs
-if confirm "setup github/gitea settings for first use"; then
+if confirm "Setup github/gitea settings to be remembered"; then
     zsh git_setup.sh
 fi
 
