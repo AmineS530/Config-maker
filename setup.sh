@@ -9,14 +9,6 @@ NC='\033[0m' # No Color
 
 #*  <-------------------------------  Made by asadik with chatGPT and love  ------------------------------->  *#
 
-# checks for oh-my-zsh
-#if [ -d "$HOME/.oh-my-zsh" ]; then
-#    echo -e "${GREEN}Oh-my-zsh is already installed, continuing...${NC}"
-#else
-#    echo -e "${YELLOW}Installing Oh-my-zsh...${NC}"
-#    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-#fi
-
 # Move the premade p10k settings and zshrc
 mv .p10k.zsh ~/.p10k.zsh && mv .zshrc ~/.zshrc
 # Check for .p10k.zsh file

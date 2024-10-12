@@ -21,6 +21,14 @@ setup: getFiles
 	@cd $(destination_dir) && zsh setup.sh
 
 getFiles:
+# checks for oh-my-zsh
+	@if [ -d "$$HOME/.oh-my-zsh" ]; then \
+    	echo "${GREEN}Oh-my-zsh is already installed, continuing...${NC}" ;\
+	else \
+  		echo "${YELLOW}Installing Oh-my-zsh...${NC}" \
+   		sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" --unattended; \
+	fi;
+
 # Check if the directory already exists
 	@if [ -d "$(destination_dir)" ]; then \
 		echo "$(YELLOW)Directory $(destination_dir) already exists. Overwriting...$(NC)"; \
