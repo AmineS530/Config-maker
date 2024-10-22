@@ -5,6 +5,7 @@
       ### features:
       + Makes ZSH as your default terminal, can be undone and re done with `make bash`(to revert to bash as default) or `make zsh` afterwards 
       + Automatically adds french keyboard layout
+      + changes logout time automatically
       + Changes terminal settings and defaults using zsh for better experience
       + Prompts to change wallpaper upon using, you can choose your own, or select one of the pre installed ones from the folder
       + Changes the theme based on preference
@@ -25,12 +26,13 @@ make
 ```
 
 ## Recent:
-  - added make [prompt] for script that can be reused
+  - Added make [prompt] for script that can be reused
       + `make git` : redo github/gitea settings
       + `make theme` : change theme
       + `make background` : change background
-  - cleaned Makefile rules
-  - now upon finishing all instances of gnome-terminal close
+  - Cleaned Makefile rules
+  - Now upon finishing all instances of gnome-terminal close
+  - Set logout to 1hour
 
 ## FAQ
 - ### I didn't enter my name or email correctly during first time use:
