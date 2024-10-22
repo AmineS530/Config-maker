@@ -32,7 +32,7 @@ else
     fi
 fi
 
-# applies the background on both light and dark mode
+# Apply the background (both lines needed for light and dark mode)
 
 gsettings set org.gnome.desktop.background picture-uri-dark "file://${background_image}" 2>/dev/null
 gsettings set org.gnome.desktop.background picture-uri "file://${background_image}" 2>/dev/null

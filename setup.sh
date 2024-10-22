@@ -1,11 +1,10 @@
 #!/bin/zsh
 
-# ANSI color codes
 RED='\033[1;0;31m'
 GREEN='\033[1;0;32m'
 YELLOW='\033[1;0;33m'
 CYAN='\033[1;0;36m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 #*  <-------------------------------  Made by asadik with chatGPT and love  ------------------------------->  *#
 
@@ -54,22 +53,28 @@ confirm() {
 # Makes you use french and english layouts
 gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us'), ('xkb', 'fr')]" >/dev/null 2>&1
 
-# Prompt and execute set_background.sh
-if confirm "Change the background?"; then
+# Prompt to change the background
+if confirm "Would you like to change the desktop background?"; then
     zsh set_background.sh
+else
+    echo -e "${YELLOW}Background change skipped.${NC}"
 fi
 
-# Prompt and execute set_theme.sh
-if confirm "Change session theme [Dark/Light]"; then
+# Prompt to change the session theme
+if confirm "Would you like to switch between Dark and Light session themes?"; then
     zsh set_theme.sh
+else
+    echo -e "${YELLOW}Theme change skipped.${NC}"
 fi
 
-# Get git/ea configs
-if confirm "Setup github/gitea settings to be remembered"; then
+# Get git/gitea configurations
+if confirm "Would you like to set up GitHub/Gitea settings to be remembered?"; then
     zsh git_setup.sh
+else
+    echo -e "${YELLOW}Git/Gitea setup skipped.${NC}"
 fi
 
-# Prompt and execute set_font.sh
+# execute set_font.sh (mandatory for the terminal style)
 zsh set_font.sh
 
 # Forward to zsh whenever terminal auto-starts bash
