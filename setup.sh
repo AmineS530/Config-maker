@@ -54,7 +54,7 @@ confirm() {
 gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us'), ('xkb', 'fr')]" >/dev/null 2>&1
 
 # Set logout when idle to 1 hour
-gsettings set org.gnome.desktop.session idle-delay 60 >/dev/null 2>&1
+gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout 5400 >/dev/null 2>&1
 
 # Prompt to change the background
 if confirm "Would you like to change the desktop background?"; then
