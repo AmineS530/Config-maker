@@ -72,7 +72,6 @@ background:
 	@cd $(destination_dir) && \
 	zsh set_background.sh
 
-
 finish:
 	@if pgrep gnome-terminal- > /dev/null; then \
 		echo "$(CYAN)GNOME Terminal is running.$(NC) $(YELLOW)Closing all instances...$(NC)"; \
