@@ -1,0 +1,15 @@
+- CLI / Web / import settings from json/toml/smth | can do soft encryption on the keys and some personal info (email/name for git)
+- import the scripts in go lang and use values from a struct for each script to process each thing 
+- get rid of the makefile and apply ther checks internally in go
+- put the zshrc and p10k settings inside vars to import easily without needing external file
+- More wallpaper options and cleaning up the existing scripts
+- add Vim settings for all versions of custumizing repos
+
+
+# test url theory to apply simple settingsbefore going all in
+
+
+
+For later:
+- theme script using api;
+- improving ui/ux since the css/html/js will be mostly AI generated at first hh
