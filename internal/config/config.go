@@ -57,3 +57,21 @@ func LoadConfig() UserConfig {
 	}
 	return cfg
 }
+
+// SaveConfig writes the given UserConfig to ~/.config/config-maker/config.json.
+func SaveConfig(cfg UserConfig) error {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	configDir := filepath.Join(homeDir, ".config", "config-maker")
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return err
+	}
+	configFilePath := filepath.Join(configDir, "config.json")
+	configData, err := json.MarshalIndent(cfg, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(configFilePath, configData, 0644)
+}

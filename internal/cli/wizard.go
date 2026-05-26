@@ -81,6 +81,7 @@ type tuiModel struct {
 	enableZshDefault bool // true = Yes, false = No
 	exportPrompt     bool // true = Yes, false = No
 	importedSettings bool // true if settings were imported at Step 0
+	exportDone       bool // true if final export step finished
 
 
 	// Form text inputs
@@ -273,8 +274,31 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if m.applying {
 			if m.finished {
-				if msg.String() == "enter" || msg.String() == "q" || msg.String() == "esc" {
-					return m, tea.Quit
+				if m.err != nil {
+					if msg.String() == "enter" || msg.String() == "q" || msg.String() == "esc" {
+						return m, tea.Quit
+					}
+				} else {
+					// Successful execution: show the export prompt if not done
+					if !m.exportDone {
+						switch msg.String() {
+						case "left", "right", "tab", "h", "l", "up", "down", "j", "k":
+							m.exportPrompt = !m.exportPrompt
+							return m, nil
+						case "enter":
+							if m.exportPrompt {
+								// Export choices using unified config helper
+								_ = config.SaveConfig(m.cfg)
+							}
+							m.exportDone = true
+							return m, nil
+						}
+					} else {
+						// Exits cleanly to restart the terminal
+						if msg.String() == "enter" {
+							return m, tea.Quit
+						}
+					}
 				}
 			}
 			return m, nil // lock keys during apply
@@ -541,14 +565,13 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				} else {
 					m.step = 5
 				}
-			case "tab", "left", "right", "h", "l", "up", "down", "j", "k":
-				m.exportPrompt = !m.exportPrompt
 			case "enter":
 				m.applying = true
 				m.step = 7
 				// Launch native Go ApplyConfig in a concurrent goroutine!
+				// We pass 'false' for exportSettings since we explicitly prompt and export *after* success in Step 7.
 				return m, tea.Batch(
-					executeApplyConfig(m.cfg, m.exportPrompt, m.logChan),
+					executeApplyConfig(m.cfg, false, m.logChan),
 					waitForActivity(m.logChan),
 				)
 			}
@@ -748,12 +771,6 @@ func (m tuiModel) View() string {
 		summary.WriteString(renderSummaryRow("Install Docker Rootless", m.enableDocker) + "\n")
 		summary.WriteString(renderSummaryRow("Set Zsh Default Shell", m.enableZshDefault) + "\n\n")
 
-		summary.WriteString(fmt.Sprintf(" %sWould you like to export/save these settings for future use?%s\n", utils.Yellow, utils.Reset))
-		summary.WriteString(fmt.Sprintf("   %s\n   %s\n\n",
-			renderToggleOption("Yes, save choices", m.exportPrompt),
-			renderToggleOption("No, do not save", !m.exportPrompt),
-		))
-
 		summary.WriteString(helpStyle.Render("Press Enter to execute the configuration updates, or Esc to quit."))
 		stepContent = summary.String()
 
@@ -782,8 +799,23 @@ func (m tuiModel) View() string {
 				logs.WriteString(fmt.Sprintf("   %s✖ Failed: %v%s\n\n", utils.Red, m.err, utils.Reset))
 				logs.WriteString("   Press [q] or [Esc] to exit.")
 			} else {
-				logs.WriteString(fmt.Sprintf("   %s✔ Finished successfully!%s\n\n", utils.Green, utils.Reset))
-				logs.WriteString("   Press [Enter] to reload and reopen GNOME Terminals now.")
+				if !m.exportDone {
+					logs.WriteString(fmt.Sprintf("   %s✔ Finished successfully!%s\n\n", utils.Green, utils.Reset))
+					logs.WriteString(fmt.Sprintf("   %sWould you like to export/save these settings for future use?%s\n", utils.Yellow, utils.Reset))
+					logs.WriteString(fmt.Sprintf("     %s\n     %s\n\n",
+						renderToggleOption("Yes, save choices", m.exportPrompt),
+						renderToggleOption("No, do not save", !m.exportPrompt),
+					))
+					logs.WriteString("   " + helpStyle.Render("Use Arrows/Tab to switch, and Enter to select."))
+				} else {
+					logs.WriteString(fmt.Sprintf("   %s✔ Finished successfully!%s\n\n", utils.Green, utils.Reset))
+					if m.exportPrompt {
+						logs.WriteString(fmt.Sprintf("   %s★ Settings exported successfully to ~/.config/config-maker/config.json%s\n\n", utils.Green, utils.Reset))
+					} else {
+						logs.WriteString("   Settings were not saved.\n\n")
+					}
+					logs.WriteString("   Press [Enter] to reload and reopen GNOME Terminals now.")
+				}
 			}
 		}
 		stepContent = logs.String()
