@@ -1,0 +1,5 @@
+# Ignore compiled config-maker binary
+config-maker
+
+# Ignore local Go compiler folder
+local-go/
