@@ -13,16 +13,16 @@ const IndexTemplate = `
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: hsl(222, 47%, 6%);
-            --card-bg: rgba(17, 24, 39, 0.7);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --primary-accent: hsl(199, 100%, 50%);
-            --secondary-accent: hsl(271, 91%, 65%);
-            --text-main: hsl(0, 0%, 95%);
-            --text-muted: hsl(215, 15%, 65%);
-            --success-color: hsl(142, 71%, 45%);
-            --error-color: hsl(350, 89%, 60%);
-            --warning-color: hsl(37, 90%, 50%);
+            --bg-color: #09090b;      /* Pure matte black (zinc-950) */
+            --card-bg: #0f0f11;       /* Solid slate-gray card (zinc-900) */
+            --border-color: #27272a;  /* Crisp dark-gray border (zinc-800) */
+            --primary-accent: #3b82f6; /* High-contrast royal blue */
+            --secondary-accent: #1d4ed8; /* Darker blue for state transitions */
+            --text-main: #fafafa;     /* Clean bright off-white (zinc-50) */
+            --text-muted: #8e8e93;    /* Professional medium gray */
+            --success-color: #10b981; /* Pure emerald green */
+            --error-color: #ef4444;   /* Solid red */
+            --warning-color: #f59e0b; /* Solid amber */
         }
 
         * {
@@ -32,8 +32,8 @@ const IndexTemplate = `
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, var(--bg-color) 0%, hsl(223, 47%, 12%) 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -43,88 +43,58 @@ const IndexTemplate = `
             position: relative;
         }
 
-        /* Abstract glowing blobs for premium feel */
-        .glow-blob {
-            position: absolute;
-            width: 500px;
-            height: 500px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, rgba(139, 92, 246, 0.05) 50%, rgba(0,0,0,0) 100%);
-            filter: blur(80px);
-            z-index: 0;
-            pointer-events: none;
-        }
-        .glow-blob-1 { top: -100px; left: -100px; }
-        .glow-blob-2 { bottom: -100px; right: -100px; }
-
         .container {
             width: 100%;
-            max-width: 720px;
-            padding: 24px;
+            max-width: 680px;
+            padding: 40px 24px;
             z-index: 10;
         }
 
-        /* Header design */
+        /* Minimal Header */
         header {
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 40px;
         }
         header h1 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 2.8rem;
-            font-weight: 800;
-            background: linear-gradient(to right, var(--primary-accent), var(--secondary-accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.8px;
             margin-bottom: 8px;
-            filter: drop-shadow(0 0 10px rgba(14, 165, 233, 0.3));
         }
         header p {
             color: var(--text-muted);
-            font-size: 1.05rem;
+            font-size: 0.95rem;
             font-weight: 400;
         }
 
-        /* Card design system */
+        /* Premium Minimalist Card */
         .glass-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 40px;
-            backdrop-filter: blur(16px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border-radius: 12px;
+            padding: 36px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
         }
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent));
-            opacity: 0.8;
-        }
 
-        /* Progress Bar styles */
+        /* Quiet Progress Bar */
         .progress-container {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 32px;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 12px 24px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.02);
+            margin-bottom: 28px;
+            background: none;
+            padding: 0;
+            border: none;
         }
         .progress-bar-wrapper {
             flex-grow: 1;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 3px;
+            height: 4px;
+            background: #1c1c1e;
+            border-radius: 2px;
             margin: 0 16px;
             overflow: hidden;
             position: relative;
@@ -132,109 +102,102 @@ const IndexTemplate = `
         .progress-bar-fill {
             height: 100%;
             width: 0%;
-            background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent));
-            border-radius: 3px;
-            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            background-color: var(--primary-accent);
+            border-radius: 2px;
+            transition: width 0.3s ease;
         }
         .progress-step-text {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-muted);
             font-weight: 500;
             min-width: 65px;
         }
 
-        /* Wizard Step content classes */
+        /* Step Content transitions */
         .step-content {
             display: none;
-            animation: fadeInSlide 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: fadeIn 0.2s ease forwards;
         }
         .step-content.active {
             display: block;
         }
 
-        @keyframes fadeInSlide {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         h2 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.6rem;
+            font-size: 1.3rem;
             font-weight: 600;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             color: var(--text-main);
+            letter-spacing: -0.3px;
         }
 
-        /* Inputs & Interactive controls */
+        /* Forms and Controls */
         .form-group {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
         .form-group label {
             display: block;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: var(--text-muted);
             margin-bottom: 8px;
             font-weight: 500;
         }
         .text-input {
             width: 100%;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 14px 18px;
+            background: #161618;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px 14px;
             color: var(--text-main);
             font-family: inherit;
-            font-size: 1rem;
-            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            transition: all 0.15s ease;
         }
         .text-input:focus {
             outline: none;
             border-color: var(--primary-accent);
-            background: rgba(255, 255, 255, 0.07);
-            box-shadow: 0 0 12px rgba(14, 165, 233, 0.15);
+            background: #18181b;
         }
 
-        /* Custom Toggle Switch */
+        /* Minimal Switch Card */
         .toggle-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 16px;
-            padding: 20px;
+            background: #141416;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
         }
         .toggle-card:hover {
-            border-color: rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.03);
-            transform: translateY(-2px);
+            border-color: #3f3f46;
+            background: #161619;
         }
         .toggle-info {
             max-width: 80%;
         }
         .toggle-title {
             font-weight: 600;
-            font-size: 1.05rem;
-            margin-bottom: 4px;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
         }
         .toggle-desc {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-muted);
             line-height: 1.4;
         }
+        
         .switch {
             position: relative;
             display: inline-block;
-            width: 52px;
-            height: 28px;
+            width: 44px;
+            height: 24px;
         }
         .switch input {
             opacity: 0;
@@ -248,32 +211,29 @@ const IndexTemplate = `
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: .3s cubic-bezier(0.16, 1, 0.3, 1);
-            border-radius: 34px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background-color: #27272a;
+            transition: .2s ease;
+            border-radius: 24px;
         }
         .slider:before {
             position: absolute;
             content: "";
-            height: 20px;
-            width: 20px;
+            height: 18px;
+            width: 18px;
             left: 3px;
             bottom: 3px;
-            background-color: white;
-            transition: .3s cubic-bezier(0.16, 1, 0.3, 1);
+            background-color: #fff;
+            transition: .2s ease;
             border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         input:checked + .slider {
-            background-image: linear-gradient(to right, var(--primary-accent), var(--secondary-accent));
-            border-color: transparent;
+            background-color: var(--primary-accent);
         }
         input:checked + .slider:before {
-            transform: translateX(24px);
+            transform: translateX(20px);
         }
 
-        /* Choice options grid (e.g. Mode selections) */
+        /* Choices Grid (e.g. Dark/Light Mode selectors) */
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -281,102 +241,105 @@ const IndexTemplate = `
             margin-bottom: 24px;
         }
         .choice-box {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 20px;
+            background: #141416;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
         .choice-box:hover {
-            border-color: rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.03);
+            border-color: #3f3f46;
+            background: #161619;
         }
         .choice-box.selected {
-            background: rgba(14, 165, 233, 0.08);
+            background: #172554;
             border-color: var(--primary-accent);
-            box-shadow: 0 0 16px rgba(14, 165, 233, 0.1);
         }
         .choice-icon {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
+            font-size: 1.5rem;
+            margin-bottom: 6px;
         }
         .choice-title {
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
         .select-input {
             width: 100%;
-            background: hsl(222, 47%, 9%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 14px 18px;
+            background: #161618;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px 14px;
             color: var(--text-main);
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 0.95rem;
             cursor: pointer;
+            outline: none;
+        }
+        .select-input:focus {
+            border-color: var(--primary-accent);
         }
 
-        /* Summary item layout */
+        /* Minimal Summary Items list */
         .summary-list {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
+            background: #141416;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
         .summary-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 10px 0;
+            border-bottom: 1px solid #1c1c1f;
         }
         .summary-row:last-child {
             border-bottom: none;
         }
         .summary-label {
             font-weight: 500;
+            font-size: 0.9rem;
             color: var(--text-muted);
         }
         .summary-value {
             display: flex;
             align-items: center;
+            font-size: 0.9rem;
             font-weight: 600;
         }
         .indicator {
-            width: 16px;
-            height: 16px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             display: inline-block;
             margin-right: 8px;
         }
         .indicator.enabled {
             background-color: var(--success-color);
-            box-shadow: 0 0 8px var(--success-color);
         }
         .indicator.disabled {
-            background-color: var(--error-color);
-            box-shadow: 0 0 8px var(--error-color);
+            background-color: #3f3f46;
         }
 
-        /* Buttons styles */
+        /* Sleek flat buttons */
         .btn-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 32px;
+            margin-top: 28px;
         }
         .btn {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1rem;
+            font-family: inherit;
+            font-size: 0.9rem;
             font-weight: 600;
-            padding: 14px 28px;
-            border-radius: 14px;
+            padding: 12px 24px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.15s ease;
             border: none;
             display: inline-flex;
             align-items: center;
@@ -384,68 +347,67 @@ const IndexTemplate = `
             text-decoration: none;
         }
         .btn-prev {
-            background: rgba(255, 255, 255, 0.05);
+            background: #18181b;
             color: var(--text-main);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
         }
         .btn-prev:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: #27272a;
+            border-color: #3f3f46;
         }
         .btn-next {
-            background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent));
+            background: var(--primary-accent);
             color: white;
-            box-shadow: 0 4px 20px rgba(14, 165, 233, 0.25);
         }
         .btn-next:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(14, 165, 233, 0.4);
+            background: var(--secondary-accent);
         }
 
-        /* Console Output styles */
+        /* Solid Console Logger (Matte black/monochrome output) */
         .console-card {
             display: none;
-            background: hsl(224, 71%, 4%);
+            background: #000;
             border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 24px;
-            font-family: 'Courier New', Courier, monospace;
-            height: 380px;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'SFMono-Regular', Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            height: 360px;
             overflow-y: auto;
-            color: #10b981;
-            margin-bottom: 24px;
-            box-shadow: inset 0 4px 24px rgba(0,0,0,0.8);
+            color: #d4d4d8;
+            margin-bottom: 20px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.9);
         }
         .console-card.active {
             display: block;
         }
         .console-line {
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             white-space: pre-wrap;
             line-height: 1.4;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         .console-pulse-container {
             display: flex;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             color: var(--text-muted);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
         .pulse-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            background-color: var(--success-color);
+            background-color: var(--primary-accent);
             margin-right: 8px;
-            animation: pulse 1.5s infinite;
+            animation: pulse 1s infinite;
         }
         @keyframes pulse {
-            0% { transform: scale(0.9); opacity: 0.5; }
-            50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 10px var(--success-color); }
-            100% { transform: scale(0.9); opacity: 0.5; }
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
         }
 
-        /* Finish View Styles */
+        /* Clean Finish View */
         .finish-view {
             display: none;
             text-align: center;
@@ -455,19 +417,12 @@ const IndexTemplate = `
             display: block;
         }
         .finish-icon {
-            font-size: 4rem;
-            margin-bottom: 16px;
-            animation: scaleBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
-        @keyframes scaleBounce {
-            0% { transform: scale(0.3); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+            font-size: 3rem;
+            margin-bottom: 12px;
         }
     </style>
 </head>
 <body>
-    <div class="glow-blob glow-blob-1"></div>
-    <div class="glow-blob glow-blob-2"></div>
 
     <div class="container">
         <header>
@@ -488,6 +443,15 @@ const IndexTemplate = `
                     <div class="progress-bar-fill" id="progressBarFill" style="width: 16.66%;"></div>
                 </div>
                 <span class="progress-step-text" id="progressPercent">16%</span>
+            </div>
+
+            <!-- Import Banner for skipping steps when settings are imported -->
+            <div id="importBanner" style="display: none; background: rgba(14, 165, 233, 0.08); border: 1px solid var(--primary-accent); border-radius: 16px; padding: 16px; margin-bottom: 24px; justify-content: space-between; align-items: center;">
+                <div style="text-align: left;">
+                    <div style="font-weight: 600; font-size: 0.95rem; color: var(--primary-accent);">Imported Saved Settings</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">You can skip straight to desktop wallpaper selection or review your choices.</div>
+                </div>
+                <button class="btn btn-next" onclick="showStep(4)" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 10px; margin-top: 0; background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent)); box-shadow: none;">Go to Wallpaper ➔</button>
             </div>
 
             <!-- STEP 1: Oh My Zsh -->
@@ -653,6 +617,16 @@ const IndexTemplate = `
                         <span class="summary-value" id="sumShell"><span class="indicator"></span><span></span></span>
                     </div>
                 </div>
+                <div class="toggle-card" style="margin-top: 24px;">
+                    <div class="toggle-info" style="text-align: left;">
+                        <div class="toggle-title">Save & Export Settings</div>
+                        <div class="toggle-desc">Automatically save these choices to ~/.config/config-maker/config.json.</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="exportSettingsWeb" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
 
             <!-- Streaming Console View -->
@@ -686,6 +660,7 @@ const IndexTemplate = `
     <script>
         let currentStep = 1;
         const totalSteps = 6;
+        let importedSettings = false;
 
         let selectedThemeMode = "1"; // "1" Dark, "2" Light
         let availableThemes = {
@@ -710,6 +685,10 @@ const IndexTemplate = `
                 const configRes = await fetch('/api/config');
                 const configData = await configRes.json();
                 applyConfigToUI(configData);
+                if (configData && (configData.git_name || configData.git_email || configData.theme_name || configData.background_image)) {
+                    showToast("Previously saved settings detected and imported!", true);
+                    showStep(1); // Force banner refresh
+                }
             } catch (err) {
                 console.error("Failed to load resources:", err);
             }
@@ -717,6 +696,10 @@ const IndexTemplate = `
 
         function applyConfigToUI(cfg) {
             if (!cfg) return;
+
+            if (cfg.git_name || cfg.git_email || cfg.theme_name || cfg.background_image) {
+                importedSettings = true;
+            }
 
             // Oh My Zsh
             document.getElementById("installZsh").checked = cfg.install_oh_my_zsh !== false;
@@ -849,6 +832,16 @@ const IndexTemplate = `
             document.getElementById("btnPrev").style.visibility = currentStep === 1 ? "hidden" : "visible";
             document.getElementById("btnNext").textContent = currentStep === totalSteps ? "Apply Config" : "Next";
 
+            // Import banner visibility logic
+            const banner = document.getElementById("importBanner");
+            if (banner) {
+                if (importedSettings && currentStep !== 4 && currentStep !== 6) {
+                    banner.style.display = "flex";
+                } else {
+                    banner.style.display = "none";
+                }
+            }
+
             if (currentStep === 6) {
                 renderSummary();
             }
@@ -942,7 +935,8 @@ const IndexTemplate = `
 
                 // Listen to SSE Stream
                 const consoleDiv = document.getElementById("consoleCard");
-                const eventSource = new EventSource("/api/stream");
+                const exportSettings = document.getElementById("exportSettingsWeb").checked;
+                const eventSource = new EventSource(` + "`" + `/api/stream?export=\${exportSettings}` + "`" + `);
 
                 eventSource.onmessage = function(event) {
                     const line = document.createElement("div");
@@ -960,6 +954,17 @@ const IndexTemplate = `
                     
                     // Show finish view
                     document.getElementById("finishView").classList.add("active");
+
+                    // Trigger browser file download if export settings is checked
+                    if (exportSettings) {
+                        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+                        const downloadAnchor = document.createElement('a');
+                        downloadAnchor.setAttribute("href", dataStr);
+                        downloadAnchor.setAttribute("download", "config.json");
+                        document.body.appendChild(downloadAnchor);
+                        downloadAnchor.click();
+                        downloadAnchor.remove();
+                    }
                 };
 
             } catch (err) {
@@ -997,7 +1002,9 @@ const IndexTemplate = `
                 const configRes = await fetch('/api/config');
                 if (!configRes.ok) throw new Error("Failed to load config.");
                 const configData = await configRes.json();
+                importedSettings = true;
                 applyConfigToUI(configData);
+                showStep(1); // Force banner refresh
                 showToast("Settings imported successfully!", true);
             } catch (err) {
                 showToast("Failed to import settings: " + err.message, false);
@@ -1046,7 +1053,15 @@ const IndexTemplate = `
                 });
 
                 if (res.ok) {
-                    showToast("Settings exported successfully!", true);
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href", dataStr);
+                    downloadAnchor.setAttribute("download", "config.json");
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+
+                    showToast("Settings exported and config.json downloaded successfully!", true);
                 } else {
                     throw new Error("Failed to write settings.");
                 }

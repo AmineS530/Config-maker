@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 func main() {
@@ -29,32 +28,22 @@ func main() {
 		return
 	}
 
-	// Display interactive menu
+	// Display interactive menu using Bubble Tea TUI
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Println("\nSelect interface:")
-		fmt.Println("\n1) CLI Wizard")
-		fmt.Println("2) Web Interface")
-		fmt.Println("3) Import Settings (View saved config.json)")
-		fmt.Println("4) Export Default Settings (Reset file)")
-		fmt.Println("5) Exit")
-		fmt.Print("\nEnter choice (1-5): ")
-
-		choice, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Println("Error reading input. Exiting.")
-			os.Exit(1)
-		}
-
-		choice = strings.TrimSpace(choice)
+		cli.ClearTerminal()
+		choice := cli.RunMenu()
 		switch choice {
-		case "1":
+		case 0: // CLI Wizard
+			cli.ClearTerminal()
 			cli.RunWizard()
 			return
-		case "2":
+		case 1: // Web Interface
+			cli.ClearTerminal()
 			startWeb(*portFlag)
 			return
-		case "3":
+		case 2: // Import Settings (View saved config.json)
+			cli.ClearTerminal()
 			cfg := config.LoadConfig()
 			fmt.Println("\n\033[0;32m[SUCCESS] Configuration loaded from ~/.config/config-maker/config.json:\033[0m")
 			fmt.Printf("  • Install Oh-My-Zsh:       %t\n", cfg.InstallOhMyZsh)
@@ -63,11 +52,16 @@ func main() {
 			fmt.Printf("  • Apply Background Wallpaper: %t (Image: %q)\n", cfg.ApplyBackground, cfg.BackgroundImage)
 			fmt.Printf("  • Install Docker Rootless: %t\n", cfg.EnableDocker)
 			fmt.Printf("  • Set Zsh Default Shell:   %t\n", cfg.EnableZshDefault)
-		case "4":
+			fmt.Print("\nPress Enter to return to menu...")
+			_, _ = reader.ReadString('\n')
+		case 3: // Export Default Settings (Reset file)
+			cli.ClearTerminal()
 			cfg := config.DefaultConfig()
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
 				fmt.Printf("\033[0;31m[ERROR] Failed to find home directory: %v\033[0m\n", err)
+				fmt.Print("\nPress Enter to return to menu...")
+				_, _ = reader.ReadString('\n')
 				continue
 			}
 			configDir := filepath.Join(homeDir, ".config", "config-maker")
@@ -79,11 +73,12 @@ func main() {
 			} else {
 				fmt.Printf("\033[0;32m[SUCCESS] Default settings exported successfully to: %s\033[0m\n", configFilePath)
 			}
-		case "5":
+			fmt.Print("\nPress Enter to return to menu...")
+			_, _ = reader.ReadString('\n')
+		case 4, -1: // Exit / Aborted
+			cli.ClearTerminal()
 			fmt.Println("Exiting.")
 			return
-		default:
-			fmt.Println("\033[0;31mInvalid choice. Please select a number from 1 to 5.\033[0m")
 		}
 	}
 }

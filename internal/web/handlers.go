@@ -153,7 +153,10 @@ func HandleStream(w http.ResponseWriter, r *http.Request) {
 	configMutex.Unlock()
 
 	// Run ApplyConfig with logs streaming to SSE
-	err = executor.ApplyConfig(cfg, true, sseWriter)
+	exportVal := r.URL.Query().Get("export")
+	export := exportVal != "false" // default to true if not specified
+
+	err = executor.ApplyConfig(cfg, export, sseWriter)
 	if err != nil {
 		_, _ = fmt.Fprintf(sseWriter, "Error applying configuration: %v\n", err)
 		return
