@@ -8,15 +8,7 @@ INSTALL_DIR="$HOME/bin"
 
 echo "Fetching latest release..."
 
-VERSION=$(curl -fsSL \
-    "https://api.github.com/repos/${REPO}/releases/latest" \
-    | grep '"tag_name":' \
-    | sed -E 's/.*"([^"]+)".*/\1/')
-
-if [ -z "$VERSION" ]; then
-    echo "Failed to determine latest version."
-    exit 1
-fi
+VERSION=2.1
 
 DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/${BINARY_NAME}"
 
