@@ -1,8 +1,6 @@
 package web
 
 import (
-	"zonerestore/internal/config"
-	"zonerestore/internal/executor"
 	"embed"
 	"encoding/json"
 	"fmt"
@@ -12,6 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"zonerestore/internal/config"
+	"zonerestore/internal/executor"
 )
 
 var (
@@ -129,7 +130,7 @@ func HandleApply(w http.ResponseWriter, r *http.Request) {
 	// Resolve the background image if a wallpaper index was selected
 	if cfg.ApplyBackground && cfg.BackgroundImage != "" && !filepath.IsAbs(cfg.BackgroundImage) {
 		homeDir, _ := os.UserHomeDir()
-		cfg.BackgroundImage = filepath.Join(homeDir, "Zone01_Desk_cfg", "wallpapers", cfg.BackgroundImage)
+		cfg.BackgroundImage = filepath.Join(homeDir, "ZoneRestore", "wallpapers", cfg.BackgroundImage)
 	}
 
 	storedConfig = cfg
@@ -280,16 +281,16 @@ func HandleWallpaperPreview(w http.ResponseWriter, r *http.Request) {
 // getWallpaperPath finds the absolute path of a wallpaper, checking both target installation and local repo folders.
 func getWallpaperPath(name string) string {
 	homeDir, _ := os.UserHomeDir()
-	
+
 	// Check root background
 	if name == "Background.jpeg" {
-		path := filepath.Join(homeDir, "Zone01_Desk_cfg", "Background.jpeg")
+		path := filepath.Join(homeDir, "ZoneRestore", "wallpapers", "Background.jpeg")
 		if _, err := os.Stat(path); err == nil {
 			return path
 		}
 		wd, err := os.Getwd()
 		if err == nil {
-			localPath := filepath.Join(wd, "Background.jpeg")
+			localPath := filepath.Join(wd, "wallpapers", "Background.jpeg")
 			if _, err := os.Stat(localPath); err == nil {
 				return localPath
 			}
@@ -297,7 +298,7 @@ func getWallpaperPath(name string) string {
 		return ""
 	}
 
-	path := filepath.Join(homeDir, "Zone01_Desk_cfg", "wallpapers", name)
+	path := filepath.Join(homeDir, "ZoneRestore", "wallpapers", name)
 	if _, err := os.Stat(path); err == nil {
 		return path
 	}

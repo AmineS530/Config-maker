@@ -3,8 +3,6 @@ package executor
 import (
 	"bufio"
 	"bytes"
-	"zonerestore/internal/config"
-	"zonerestore/internal/utils"
 	_ "embed"
 	"fmt"
 	"io"
@@ -13,6 +11,9 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"zonerestore/internal/config"
+	"zonerestore/internal/utils"
 )
 
 //go:embed assets/.zshrc
@@ -48,7 +49,7 @@ func ApplyConfig(cfg config.UserConfig, exportSettings bool, out io.Writer) erro
 	}
 
 	// 2. Clone the Config-maker repository
-	destDir := filepath.Join(homeDir, "Zone01_Desk_cfg")
+	destDir := filepath.Join(homeDir, "ZoneRestore")
 	logger.Info("Setting up repository destination: %s", destDir)
 
 	if _, err := os.Stat(destDir); !os.IsNotExist(err) {
@@ -151,7 +152,7 @@ func ApplyConfig(cfg config.UserConfig, exportSettings bool, out io.Writer) erro
 	if cfg.ApplyBackground {
 		bgPath := cfg.BackgroundImage
 		if bgPath == "" {
-			bgPath = filepath.Join(destDir, "Background.jpeg")
+			bgPath = filepath.Join(destDir, "wallpapers", "Background.jpeg")
 		}
 		logger.Info("Applying desktop background: %s", bgPath)
 		fileURL := "file://" + bgPath
@@ -164,7 +165,7 @@ func ApplyConfig(cfg config.UserConfig, exportSettings bool, out io.Writer) erro
 	if cfg.ConfigureFonts {
 		logger.Info("Installing custom fonts...")
 		fontsTargetDir := filepath.Join(homeDir, ".local", "share", "fonts")
-		_ = os.MkdirAll(fontsTargetDir, 0755)
+		_ = os.MkdirAll(fontsTargetDir, 0o755)
 
 		displayFontFile := "MPLUS1p-Regular.ttf"
 		terminalFontFile := "MesloLGS NF Regular.ttf"
@@ -333,7 +334,7 @@ func copyFile(src, dst string) error {
 
 // appendToFile appends a string to the specified file.
 func appendToFile(path, content string) error {
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}
@@ -404,7 +405,7 @@ func removeZshFromBashrc(bashrcPath string) error {
 		return nil
 	}
 
-	return os.WriteFile(bashrcPath, []byte(newContent), 0644)
+	return os.WriteFile(bashrcPath, []byte(newContent), 0o644)
 }
 
 // writeTemplate compiles a text template with cfg config and writes it to destPath.
@@ -419,5 +420,5 @@ func writeTemplate(tmplContent, destPath string, cfg config.UserConfig) error {
 		return fmt.Errorf("failed to execute template: %w", err)
 	}
 
-	return os.WriteFile(destPath, buf.Bytes(), 0644)
+	return os.WriteFile(destPath, buf.Bytes(), 0o644)
 }

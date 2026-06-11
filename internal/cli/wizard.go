@@ -1,13 +1,14 @@
 package cli
 
 import (
-	"zonerestore/internal/config"
-	"zonerestore/internal/executor"
-	"zonerestore/internal/utils"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"zonerestore/internal/config"
+	"zonerestore/internal/executor"
+	"zonerestore/internal/utils"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -16,12 +17,12 @@ import (
 
 // Lipgloss TUI Styles
 var (
-	cyan        = lipgloss.Color("15")  // Crisp white for active items and highlights
-	purple      = lipgloss.Color("240") // Dark slate gray for subtle borders
-	green       = lipgloss.Color("120")
-	red         = lipgloss.Color("196")
-	gray        = lipgloss.Color("243") // Muted gray for secondary items
-	obsidianBg  = lipgloss.Color("233")
+	cyan       = lipgloss.Color("15")  // Crisp white for active items and highlights
+	purple     = lipgloss.Color("240") // Dark slate gray for subtle borders
+	green      = lipgloss.Color("120")
+	red        = lipgloss.Color("196")
+	gray       = lipgloss.Color("243") // Muted gray for secondary items
+	obsidianBg = lipgloss.Color("233")
 
 	titleStyle = lipgloss.NewStyle().
 			Foreground(cyan).
@@ -41,7 +42,7 @@ var (
 			Bold(true)
 
 	inactiveItemStyle = lipgloss.NewStyle().
-			Foreground(gray)
+				Foreground(gray)
 
 	successStyle = lipgloss.NewStyle().
 			Foreground(green)
@@ -55,10 +56,12 @@ var (
 )
 
 // Custom TUI Message definitions
-type logLineMsg string
-type execFinishedMsg struct {
-	err error
-}
+type (
+	logLineMsg      string
+	execFinishedMsg struct {
+		err error
+	}
+)
 
 type tuiModel struct {
 	step             int // 0 to 7
@@ -83,19 +86,18 @@ type tuiModel struct {
 	importedSettings bool // true if settings were imported at Step 0
 	exportDone       bool // true if final export step finished
 
-
 	// Form text inputs
-	gitNameInput   textinput.Model
-	gitEmailInput  textinput.Model
-	customBgInput  textinput.Model
-	focusedInput   int // 0 or 1 for Git, 0 for Custom Path
+	gitNameInput  textinput.Model
+	gitEmailInput textinput.Model
+	customBgInput textinput.Model
+	focusedInput  int // 0 or 1 for Git, 0 for Custom Path
 
 	// Execution logs state
-	applying   bool
-	finished   bool
-	err        error
-	logChan    chan tea.Msg
-	logLines   []string
+	applying bool
+	finished bool
+	err      error
+	logChan  chan tea.Msg
+	logLines []string
 }
 
 // RunWizard kicks off the interactive Bubble Tea terminal wizard.
@@ -136,7 +138,7 @@ func RunWizard() {
 	customBgInput.Placeholder = "/home/user/Pictures/wallpaper.jpg"
 	customBgInput.CharLimit = 256
 	customBgInput.Width = 45
-	if initCfg.BackgroundImage != "" && !strings.Contains(initCfg.BackgroundImage, "Zone01_Desk_cfg") {
+	if initCfg.BackgroundImage != "" && !strings.Contains(initCfg.BackgroundImage, "ZoneRestore") {
 		customBgInput.SetValue(initCfg.BackgroundImage)
 	}
 
@@ -520,10 +522,10 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					case "enter":
 						homeDir, _ := os.UserHomeDir()
 						if m.bgChoiceCursor == 0 {
-							m.cfg.BackgroundImage = filepath.Join(homeDir, "Zone01_Desk_cfg", "Background.jpeg")
+							m.cfg.BackgroundImage = filepath.Join(homeDir, "ZoneRestore", "wallpapers", "Background.jpeg")
 						} else if m.bgChoiceCursor == 1 {
 							selectedWP := m.repoWallpapers[m.wallpaperCursor]
-							m.cfg.BackgroundImage = filepath.Join(homeDir, "Zone01_Desk_cfg", "wallpapers", selectedWP)
+							m.cfg.BackgroundImage = filepath.Join(homeDir, "ZoneRestore", "wallpapers", selectedWP)
 						}
 						if m.importedSettings {
 							m.step = 6
@@ -624,7 +626,7 @@ func (m tuiModel) View() string {
 				" [Step 2/6] Git global setup\n\n"+
 					" %sWould you like to configure Git name & email?%s\n\n"+
 					"   %s\n   %s",
-					utils.Yellow, utils.Reset,
+				utils.Yellow, utils.Reset,
 				renderToggleOption("Yes, configure Git", m.configureGit),
 				renderToggleOption("No, skip Git setup", !m.configureGit),
 			)
@@ -650,7 +652,7 @@ func (m tuiModel) View() string {
 				" [Step 3/6] Gnome visual theme\n\n"+
 					" %sWould you like to customize Gnome windows/interface theme?%s\n\n"+
 					"   %s\n   %s",
-					utils.Yellow, utils.Reset,
+				utils.Yellow, utils.Reset,
 				renderToggleOption("Yes, apply Gnome themes", m.applyTheme),
 				renderToggleOption("No, skip themes", !m.applyTheme),
 			)
@@ -697,7 +699,7 @@ func (m tuiModel) View() string {
 				" [Step 4/6] Desktop Wallpaper\n\n"+
 					" %sWould you like to set custom desktop backgrounds?%s\n\n"+
 					"   %s\n   %s",
-					utils.Yellow, utils.Reset,
+				utils.Yellow, utils.Reset,
 				renderToggleOption("Yes, apply desktop wallpaper", m.applyBg),
 				renderToggleOption("No, skip wallpaper", !m.applyBg),
 			)
