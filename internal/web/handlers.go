@@ -3,10 +3,12 @@ package web
 import (
 	"config-maker/internal/config"
 	"config-maker/internal/executor"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -215,22 +217,8 @@ func HandleExport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	homeDir, _ := os.UserHomeDir()
-	configDir := filepath.Join(homeDir, ".config", "config-maker")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	configFilePath := filepath.Join(configDir, "config.json")
-	configData, err := json.MarshalIndent(cfg, "", "  ")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if err := os.WriteFile(configFilePath, configData, 0644); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err := config.SaveConfig(cfg); err != nil {
+		http.Error(w, "Failed to save config: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -241,4 +229,149 @@ func HandleExport(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write([]byte(`{"status":"success"}`))
+}
+
+// HandleSelectWallpaper runs Zenity to select a wallpaper image natively in GNOME.
+func HandleSelectWallpaper(w http.ResponseWriter, r *http.Request) {
+	cmd := exec.Command("zenity", "--file-selection", "--title=Select Wallpaper Image", "--file-filter=Image Files | *.png *.jpg *.jpeg *.PNG *.JPG *.JPEG")
+	out, err := cmd.Output()
+	if err != nil {
+		// If user canceled or zenity is missing
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"status":"canceled"}`))
+		return
+	}
+
+	selectedPath := strings.TrimSpace(string(out))
+	w.Header().Set("Content-Type", "application/json")
+	resp := map[string]string{
+		"status": "success",
+		"path":   selectedPath,
+	}
+	_ = json.NewEncoder(w).Encode(resp)
+}
+
+// HandleWallpaperPreview serves any image file for preview in the webapp.
+func HandleWallpaperPreview(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Query().Get("path")
+	name := r.URL.Query().Get("name")
+
+	var targetPath string
+	if name != "" {
+		targetPath = getWallpaperPath(name)
+	} else {
+		targetPath = path
+	}
+
+	if targetPath == "" {
+		http.Error(w, "Path or Name parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	info, err := os.Stat(targetPath)
+	if err != nil || info.IsDir() {
+		http.Error(w, "Invalid file path", http.StatusNotFound)
+		return
+	}
+
+	http.ServeFile(w, r, targetPath)
+}
+
+// getWallpaperPath finds the absolute path of a wallpaper, checking both target installation and local repo folders.
+func getWallpaperPath(name string) string {
+	homeDir, _ := os.UserHomeDir()
+	
+	// Check root background
+	if name == "Background.jpeg" {
+		path := filepath.Join(homeDir, "Zone01_Desk_cfg", "Background.jpeg")
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+		wd, err := os.Getwd()
+		if err == nil {
+			localPath := filepath.Join(wd, "Background.jpeg")
+			if _, err := os.Stat(localPath); err == nil {
+				return localPath
+			}
+		}
+		return ""
+	}
+
+	path := filepath.Join(homeDir, "Zone01_Desk_cfg", "wallpapers", name)
+	if _, err := os.Stat(path); err == nil {
+		return path
+	}
+
+	// Fallback to local wallpapers directory
+	wd, err := os.Getwd()
+	if err == nil {
+		localPath := filepath.Join(wd, "wallpapers", name)
+		if _, err := os.Stat(localPath); err == nil {
+			return localPath
+		}
+	}
+	return ""
+}
+
+// HandleDefaultConfig returns the default configuration.
+func HandleDefaultConfig(w http.ResponseWriter, r *http.Request) {
+	cfg := config.DefaultConfig()
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(cfg)
+}
+
+// HandleImportConfig opens a Zenity file dialog to select a configuration JSON file,
+// parses it, updates the in-memory config, and returns it to the client.
+func HandleImportConfig(w http.ResponseWriter, r *http.Request) {
+	cmd := exec.Command("zenity", "--file-selection", "--title=Select Configuration JSON", "--file-filter=JSON Files | *.json")
+	out, err := cmd.Output()
+	if err != nil {
+		// User canceled or zenity is missing
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"status":"canceled"}`))
+		return
+	}
+
+	selectedPath := strings.TrimSpace(string(out))
+	fileData, err := os.ReadFile(selectedPath)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(`{"status":"error","message":"Failed to read file"}`))
+		return
+	}
+
+	var cfg config.UserConfig
+	if err := json.Unmarshal(fileData, &cfg); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(`{"status":"error","message":"Invalid JSON configuration format"}`))
+		return
+	}
+
+	// Update stored config in memory
+	configMutex.Lock()
+	storedConfig = cfg
+	configMutex.Unlock()
+
+	w.Header().Set("Content-Type", "application/json")
+	resp := map[string]interface{}{
+		"status": "success",
+		"config": cfg,
+	}
+	_ = json.NewEncoder(w).Encode(resp)
+}
+
+//go:embed js/alpine.min.js
+var alpineJS embed.FS
+
+// HandleAlpineJS serves the embedded Alpine.js file.
+func HandleAlpineJS(w http.ResponseWriter, r *http.Request) {
+	data, err := alpineJS.ReadFile("js/alpine.min.js")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/javascript")
+	_, _ = w.Write(data)
 }

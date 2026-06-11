@@ -8,29 +8,35 @@ import (
 
 // UserConfig holds the user choices for the configuration wizard.
 type UserConfig struct {
-	InstallOhMyZsh   bool   `json:"install_oh_my_zsh"`
-	ConfigureGit     bool   `json:"configure_git"`
-	GitName          string `json:"git_name"`
-	GitEmail         string `json:"git_email"`
-	ApplyTheme       bool   `json:"apply_theme"`
-	ThemeMode        string `json:"theme_mode"` // "1" = dark, "2" = light
-	ThemeName        string `json:"theme_name"`
-	ApplyBackground  bool   `json:"apply_background"`
-	BackgroundImage  string `json:"background_image"`
-	EnableDocker     bool   `json:"enable_docker"`
-	EnableZshDefault bool   `json:"enable_zsh_default"`
+	InstallOhMyZsh    bool   `json:"install_oh_my_zsh"`
+	ConfigureGit      bool   `json:"configure_git"`
+	GitName           string `json:"git_name"`
+	GitEmail          string `json:"git_email"`
+	ApplyTheme        bool   `json:"apply_theme"`
+	ThemeMode         string `json:"theme_mode"` // "1" = dark, "2" = light
+	ThemeName         string `json:"theme_name"`
+	ApplyBackground   bool   `json:"apply_background"`
+	BackgroundImage   string `json:"background_image"`
+	EnableDocker      bool   `json:"enable_docker"`
+	EnableZshDefault  bool   `json:"enable_zsh_default"`
+	ConfigureKeyboard bool   `json:"configure_keyboard"`
+	ConfigurePower    bool   `json:"configure_power"`
+	ConfigureFonts    bool   `json:"configure_fonts"`
 }
 
 // DefaultConfig returns a pre-populated default configuration.
 func DefaultConfig() UserConfig {
 	return UserConfig{
-		InstallOhMyZsh:   true,
-		ConfigureGit:     true,
-		ApplyTheme:       true,
-		ThemeMode:        "1",
-		ApplyBackground:  true,
-		EnableDocker:     false,
-		EnableZshDefault: true,
+		InstallOhMyZsh:    true,
+		ConfigureGit:      true,
+		ApplyTheme:        true,
+		ThemeMode:         "1",
+		ApplyBackground:   true,
+		EnableDocker:      false,
+		EnableZshDefault:  true,
+		ConfigureKeyboard: true,
+		ConfigurePower:    true,
+		ConfigureFonts:    true,
 	}
 }
 

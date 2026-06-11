@@ -5,7 +5,6 @@ import (
 	"config-maker/internal/cli"
 	"config-maker/internal/config"
 	"config-maker/internal/web"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -57,20 +56,11 @@ func main() {
 		case 3: // Export Default Settings (Reset file)
 			cli.ClearTerminal()
 			cfg := config.DefaultConfig()
-			homeDir, err := os.UserHomeDir()
-			if err != nil {
-				fmt.Printf("\033[0;31m[ERROR] Failed to find home directory: %v\033[0m\n", err)
-				fmt.Print("\nPress Enter to return to menu...")
-				_, _ = reader.ReadString('\n')
-				continue
-			}
-			configDir := filepath.Join(homeDir, ".config", "config-maker")
-			_ = os.MkdirAll(configDir, 0755)
-			configFilePath := filepath.Join(configDir, "config.json")
-			configData, _ := json.MarshalIndent(cfg, "", "  ")
-			if err := os.WriteFile(configFilePath, configData, 0644); err != nil {
+			if err := config.SaveConfig(cfg); err != nil {
 				fmt.Printf("\033[0;31m[ERROR] Failed to export settings: %v\033[0m\n", err)
 			} else {
+				homeDir, _ := os.UserHomeDir()
+				configFilePath := filepath.Join(homeDir, ".config", "config-maker", "config.json")
 				fmt.Printf("\033[0;32m[SUCCESS] Default settings exported successfully to: %s\033[0m\n", configFilePath)
 			}
 			fmt.Print("\nPress Enter to return to menu...")

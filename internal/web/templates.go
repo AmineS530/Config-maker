@@ -11,6 +11,7 @@ const IndexTemplate = `
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="/js/alpine.min.js" defer></script>
     <style>
         :root {
             --bg-color: #09090b;      /* Pure matte black (zinc-950) */
@@ -430,7 +431,6 @@ const IndexTemplate = `
             <p>Sleek Desktop Configuration Wizard</p>
             <div style="margin-top: 20px; display: flex; justify-content: center; gap: 16px;">
                 <button class="btn btn-prev" onclick="manualImport()" style="padding: 10px 20px; font-size: 0.9rem; border-radius: 12px; margin-top: 0; background: rgba(14, 165, 233, 0.1); border-color: var(--primary-accent);">📥 Import Settings</button>
-                <button class="btn btn-prev" onclick="manualExport()" style="padding: 10px 20px; font-size: 0.9rem; border-radius: 12px; margin-top: 0; background: rgba(139, 92, 246, 0.1); border-color: var(--secondary-accent);">💾 Export Settings</button>
             </div>
             <div id="toastNotification" style="display: none; margin-top: 16px; padding: 10px 20px; border-radius: 12px; font-size: 0.9rem; font-weight: 500; text-align: center; animation: fadeInSlide 0.3s ease;"></div>
         </header>
@@ -547,18 +547,33 @@ const IndexTemplate = `
                         <select id="bgSource" class="select-input" onchange="toggleBgInputs()">
                             <option value="1">Predefined Background.jpeg</option>
                             <option value="2">Select from repository wallpapers</option>
-                            <option value="3">Custom absolute image path</option>
+                            <option value="3">Select custom image via GNOME</option>
                         </select>
                     </div>
                     <div class="form-group" id="repoWallpapersWrapper" style="display: none;">
                         <label for="repoWpSelect">Available Wallpaper</label>
-                        <select id="repoWpSelect" class="select-input">
+                        <select id="repoWpSelect" class="select-input" onchange="updateWallpaperPreview()">
                             <!-- Populated from system values -->
                         </select>
                     </div>
                     <div class="form-group" id="customPathWrapper" style="display: none;">
-                        <label for="customBgPath">Absolute Path</label>
-                        <input type="text" id="customBgPath" class="text-input" placeholder="e.g. /home/user/Pictures/wallpaper.jpg">
+                        <label>Custom Selected Image</label>
+                        <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+                            <button type="button" class="btn" onclick="selectGnomeImage()" style="background: rgba(139, 92, 246, 0.2); border: 1px solid var(--secondary-accent); color: var(--text-light); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: background 0.2s;">
+                                📂 Choose Image...
+                            </button>
+                            <span id="selectedImagePath" style="font-size: 0.85rem; color: var(--text-muted); word-break: break-all;">No image selected</span>
+                        </div>
+                    </div>
+                    <div id="wallpaperPreviewWrapper" style="margin-top: 20px; display: none;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem; color: var(--text-muted);">Wallpaper Preview</label>
+                        <div class="preview-card" style="border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; overflow: hidden; background: rgba(255, 255, 255, 0.03); aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,0.4);">
+                            <img id="wallpaperPreviewImg" src="" style="width: 100%; height: 100%; object-fit: cover; display: none; transition: opacity 0.3s ease;">
+                            <div id="wallpaperPreviewPlaceholder" style="color: var(--text-muted); font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                <span>🖼️</span>
+                                <span>No preview available</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -583,6 +598,36 @@ const IndexTemplate = `
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="defaultShellZsh" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-card">
+                    <div class="toggle-info">
+                        <div class="toggle-title">Configure Keyboard Layouts</div>
+                        <div class="toggle-desc">Applies US and French keyboard layouts in Gnome.</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="configureKeyboard" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-card">
+                    <div class="toggle-info">
+                        <div class="toggle-title">Configure GNOME Power Settings</div>
+                        <div class="toggle-desc">Sets desktop logout/idle sleep timeout to 1.5 hours.</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="configurePower" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-card">
+                    <div class="toggle-info">
+                        <div class="toggle-title">Install Custom Fonts</div>
+                        <div class="toggle-desc">Installs custom MPLUS/Meslo fonts and sets terminal default font.</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="configureFonts" checked>
                         <span class="slider"></span>
                     </label>
                 </div>
@@ -615,6 +660,18 @@ const IndexTemplate = `
                     <div class="summary-row">
                         <span class="summary-label">Zsh as Default Shell</span>
                         <span class="summary-value" id="sumShell"><span class="indicator"></span><span></span></span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Configure Keyboard Layouts</span>
+                        <span class="summary-value" id="sumKeyboard"><span class="indicator"></span><span></span></span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Configure Power Settings</span>
+                        <span class="summary-value" id="sumPower"><span class="indicator"></span><span></span></span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Install Custom Fonts</span>
+                        <span class="summary-value" id="sumFonts"><span class="indicator"></span><span></span></span>
                     </div>
                 </div>
                 <div class="toggle-card" style="margin-top: 24px;">
@@ -657,6 +714,23 @@ const IndexTemplate = `
         </div>
     </div>
 
+    <!-- Startup Dialog Modal -->
+    <div id="startupModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(9, 9, 11, 0.85); backdrop-filter: blur(12px); z-index: 1000; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
+        <div class="modal-card" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; padding: 40px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); transform: scale(0.95); transition: transform 0.3s ease, opacity 0.3s ease;">
+            <div style="font-size: 3rem; margin-bottom: 20px;">⚙️</div>
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem; margin-bottom: 12px; color: var(--text-main);">Welcome to Config Maker</h2>
+            <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 32px; line-height: 1.5;">Configure your shell, tools, and theme preferences to build a dream workspace.</p>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <button onclick="selectStartupOption('fresh')" style="background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent)); border: none; color: var(--text-main); padding: 16px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);">
+                    🚀 First-Time Setup (Start Fresh)
+                </button>
+                <button onclick="selectStartupOption('import')" style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-color); color: var(--text-main); padding: 16px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: background 0.2s, transform 0.2s;">
+                    💾 Import Saved Settings (config.json)
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentStep = 1;
         const totalSteps = 6;
@@ -681,24 +755,25 @@ const IndexTemplate = `
                 populateThemeDropdown();
                 populateWallpaperDropdown();
 
-                // Fetch loaded config
-                const configRes = await fetch('/api/config');
-                const configData = await configRes.json();
-                applyConfigToUI(configData);
-                if (configData && (configData.git_name || configData.git_email || configData.theme_name || configData.background_image)) {
-                    showToast("Previously saved settings detected and imported!", true);
-                    showStep(1); // Force banner refresh
-                }
+                // Open the startup modal overlay
+                const modal = document.getElementById("startupModal");
+                modal.style.display = "flex";
+                setTimeout(() => {
+                    modal.style.opacity = "1";
+                    modal.querySelector(".modal-card").style.transform = "scale(1)";
+                }, 50);
             } catch (err) {
                 console.error("Failed to load resources:", err);
             }
         }
 
-        function applyConfigToUI(cfg) {
+        function applyConfigToUI(cfg, isImported) {
             if (!cfg) return;
 
-            if (cfg.git_name || cfg.git_email || cfg.theme_name || cfg.background_image) {
-                importedSettings = true;
+            importedSettings = !!isImported;
+            const banner = document.getElementById("importBanner");
+            if (banner) {
+                banner.style.display = importedSettings ? "flex" : "none";
             }
 
             // Oh My Zsh
@@ -724,23 +799,69 @@ const IndexTemplate = `
             // Background Desktop Wallpaper
             document.getElementById("setupBg").checked = cfg.apply_background !== false;
             const bgImage = cfg.background_image || "";
+            const isRepoWp = wallpapers.some(wp => bgImage.endsWith(wp));
             if (bgImage === "" || bgImage.endsWith("Background.jpeg")) {
                 document.getElementById("bgSource").value = "1";
-            } else if (bgImage.includes("wallpapers/")) {
+            } else if (isRepoWp || bgImage.includes("wallpapers/")) {
                 document.getElementById("bgSource").value = "2";
                 const parts = bgImage.split("/");
                 const filename = parts[parts.length - 1];
                 document.getElementById("repoWpSelect").value = filename;
             } else {
                 document.getElementById("bgSource").value = "3";
-                document.getElementById("customBgPath").value = bgImage;
+                selectedGnomeImagePath = bgImage;
+                document.getElementById("selectedImagePath").textContent = bgImage || "No image selected";
             }
             toggleBgInputs();
             toggleBgFields();
+            updateWallpaperPreview();
 
             // Docker & Default Shell
             document.getElementById("installDocker").checked = cfg.enable_docker === true;
             document.getElementById("defaultShellZsh").checked = cfg.enable_zsh_default !== false;
+            document.getElementById("configureKeyboard").checked = cfg.configure_keyboard !== false;
+            document.getElementById("configurePower").checked = cfg.configure_power !== false;
+            document.getElementById("configureFonts").checked = cfg.configure_fonts !== false;
+        }
+
+        async function selectStartupOption(option) {
+            const modal = document.getElementById("startupModal");
+
+            if (option === 'fresh') {
+                try {
+                    const res = await fetch('/api/config/default');
+                    const defaultCfg = await res.json();
+                    applyConfigToUI(defaultCfg, false);
+                    showToast("Loaded fresh default settings.", true);
+
+                    // Close modal
+                    modal.style.opacity = "0";
+                    modal.querySelector(".modal-card").style.transform = "scale(0.95)";
+                    setTimeout(() => { modal.style.display = "none"; }, 300);
+                } catch (err) {
+                    showToast("Failed to load default configuration: " + err.message, false);
+                }
+            } else if (option === 'import') {
+                try {
+                    const res = await fetch('/api/config/import');
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        applyConfigToUI(data.config, true);
+                        showToast("Settings imported successfully!", true);
+
+                        // Close modal
+                        modal.style.opacity = "0";
+                        modal.querySelector(".modal-card").style.transform = "scale(0.95)";
+                        setTimeout(() => { modal.style.display = "none"; }, 300);
+                    } else if (data.status === 'canceled') {
+                        showToast("Import canceled", false);
+                    } else if (data.status === 'error') {
+                        showToast("Failed to import: " + data.message, false);
+                    }
+                } catch (err) {
+                    showToast("Failed to load saved configuration: " + err.message, false);
+                }
+            }
         }
 
         function populateThemeDropdown() {
@@ -775,6 +896,65 @@ const IndexTemplate = `
             });
         }
 
+        let selectedGnomeImagePath = "";
+
+        async function selectGnomeImage() {
+            try {
+                const res = await fetch('/api/select-wallpaper');
+                if (!res.ok) throw new Error("Server error");
+                const data = await res.json();
+                if (data.status === "success" && data.path) {
+                    selectedGnomeImagePath = data.path;
+                    document.getElementById("selectedImagePath").textContent = data.path;
+                    updateWallpaperPreview();
+                } else if (data.status === "canceled") {
+                    showToast("Selection canceled", false);
+                }
+            } catch (err) {
+                showToast("Failed to select image: " + err.message, false);
+            }
+        }
+
+        function updateWallpaperPreview() {
+            const bgEnabled = document.getElementById("setupBg").checked;
+            const previewWrapper = document.getElementById("wallpaperPreviewWrapper");
+            const previewImg = document.getElementById("wallpaperPreviewImg");
+            const previewPlaceholder = document.getElementById("wallpaperPreviewPlaceholder");
+
+            if (!bgEnabled) {
+                previewWrapper.style.display = "none";
+                return;
+            }
+
+            const src = document.getElementById("bgSource").value;
+            let previewUrl = "";
+
+            if (src === "1") {
+                previewUrl = '/api/wallpaper/preview?name=Background.jpeg';
+            } else if (src === "2") {
+                const wpName = document.getElementById("repoWpSelect").value;
+                if (wpName) {
+                    previewUrl = '/api/wallpaper/preview?name=' + encodeURIComponent(wpName);
+                }
+            } else if (src === "3") {
+                if (selectedGnomeImagePath) {
+                    previewUrl = '/api/wallpaper/preview?path=' + encodeURIComponent(selectedGnomeImagePath);
+                }
+            }
+
+            if (previewUrl) {
+                previewImg.src = previewUrl;
+                previewImg.style.display = "block";
+                previewPlaceholder.style.display = "none";
+                previewWrapper.style.display = "block";
+            } else {
+                previewImg.src = "";
+                previewImg.style.display = "none";
+                previewPlaceholder.style.display = "flex";
+                previewWrapper.style.display = "block";
+            }
+        }
+
         function selectThemeMode(mode) {
             selectedThemeMode = mode;
             document.getElementById("themeModeDark").classList.toggle("selected", mode === "1");
@@ -795,12 +975,14 @@ const IndexTemplate = `
         function toggleBgFields() {
             document.getElementById("bgFields").style.opacity = document.getElementById("setupBg").checked ? "1" : "0.4";
             document.getElementById("bgFields").style.pointerEvents = document.getElementById("setupBg").checked ? "auto" : "none";
+            updateWallpaperPreview();
         }
 
         function toggleBgInputs() {
             const src = document.getElementById("bgSource").value;
             document.getElementById("repoWallpapersWrapper").style.display = src === "2" ? "block" : "none";
             document.getElementById("customPathWrapper").style.display = src === "3" ? "block" : "none";
+            updateWallpaperPreview();
         }
 
         function prevStep() {
@@ -863,11 +1045,14 @@ const IndexTemplate = `
             let bgVal = "Default Background.jpeg";
             const bgSrc = document.getElementById("bgSource").value;
             if (bgSrc === "2") bgVal = "Wallpaper: " + document.getElementById("repoWpSelect").value;
-            else if (bgSrc === "3") bgVal = "Custom Path: " + document.getElementById("customBgPath").value;
+            else if (bgSrc === "3") bgVal = "Custom Image: " + (selectedGnomeImagePath || "None");
             updateSummaryRow("sumBg", bgEnabled, bgEnabled ? ` + "`" + `Set Wallpaper (${bgVal})` + "`" + ` : "Set Background", "Skip Background");
 
             updateSummaryRow("sumDocker", document.getElementById("installDocker").checked, "Install Docker Rootless", "Skip Docker");
             updateSummaryRow("sumShell", document.getElementById("defaultShellZsh").checked, "Set Zsh as default", "Keep Bash");
+            updateSummaryRow("sumKeyboard", document.getElementById("configureKeyboard").checked, "Configure Keyboard Layouts", "Skip Keyboard Layouts");
+            updateSummaryRow("sumPower", document.getElementById("configurePower").checked, "Configure Power Settings", "Skip Power Settings");
+            updateSummaryRow("sumFonts", document.getElementById("configureFonts").checked, "Install Custom Fonts", "Skip Fonts");
         }
 
         function updateSummaryRow(elementId, enabled, activeText, inactiveText) {
@@ -894,11 +1079,18 @@ const IndexTemplate = `
             if (bgSrc === "2") {
                 backgroundImage = document.getElementById("repoWpSelect").value; // we'll join it in Go
             } else if (bgSrc === "3") {
-                backgroundImage = document.getElementById("customBgPath").value;
+                if (applyBackground && !selectedGnomeImagePath) {
+                    showToast("Please select a custom wallpaper image first.", false);
+                    return;
+                }
+                backgroundImage = selectedGnomeImagePath;
             }
 
             const enableDocker = document.getElementById("installDocker").checked;
             const enableZshDefault = document.getElementById("defaultShellZsh").checked;
+            const configureKeyboard = document.getElementById("configureKeyboard").checked;
+            const configurePower = document.getElementById("configurePower").checked;
+            const configureFonts = document.getElementById("configureFonts").checked;
 
             const payload = {
                 install_oh_my_zsh: installZsh,
@@ -911,7 +1103,10 @@ const IndexTemplate = `
                 apply_background: applyBackground,
                 background_image: backgroundImage,
                 enable_docker: enableDocker,
-                enable_zsh_default: enableZshDefault
+                enable_zsh_default: enableZshDefault,
+                configure_keyboard: configureKeyboard,
+                configure_power: configurePower,
+                configure_fonts: configureFonts
             };
 
             // Switch to console view
@@ -1026,11 +1221,18 @@ const IndexTemplate = `
                 if (bgSrc === "2") {
                     backgroundImage = document.getElementById("repoWpSelect").value;
                 } else if (bgSrc === "3") {
-                    backgroundImage = document.getElementById("customBgPath").value;
+                    if (applyBackground && !selectedGnomeImagePath) {
+                        showToast("Please select a custom wallpaper image first.", false);
+                        return;
+                    }
+                    backgroundImage = selectedGnomeImagePath;
                 }
 
                 const enableDocker = document.getElementById("installDocker").checked;
                 const enableZshDefault = document.getElementById("defaultShellZsh").checked;
+                const configureKeyboard = document.getElementById("configureKeyboard").checked;
+                const configurePower = document.getElementById("configurePower").checked;
+                const configureFonts = document.getElementById("configureFonts").checked;
 
                 const payload = {
                     install_oh_my_zsh: installZsh,
@@ -1043,7 +1245,10 @@ const IndexTemplate = `
                     apply_background: applyBackground,
                     background_image: backgroundImage,
                     enable_docker: enableDocker,
-                    enable_zsh_default: enableZshDefault
+                    enable_zsh_default: enableZshDefault,
+                    configure_keyboard: configureKeyboard,
+                    configure_power: configurePower,
+                    configure_fonts: configureFonts
                 };
 
                 const res = await fetch('/api/export', {

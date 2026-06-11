@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"config-maker/internal/config"
 	"config-maker/internal/utils"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -87,12 +86,25 @@ func ApplyConfig(cfg config.UserConfig, exportSettings bool, out io.Writer) erro
 	}
 
 	// 5. System Gsettings (layout & power settings)
-	logger.Info("Configuring Gnome keyboard layouts and power settings...")
-	layoutCmd := exec.Command("gsettings", "set", "org.gnome.desktop.input-sources", "sources", "[('xkb', 'us'), ('xkb', 'fr')]")
-	_ = layoutCmd.Run()
+	if cfg.ConfigureKeyboard {
+		logger.Info("Configuring Gnome keyboard layouts...")
+		layoutCmd := exec.Command("gsettings", "set", "org.gnome.desktop.input-sources", "sources", "[('xkb', 'us'), ('xkb', 'fr')]")
+		if err := layoutCmd.Run(); err != nil {
+			logger.Warning("Failed to configure keyboard layouts: %v", err)
+		} else {
+			logger.Success("Gnome keyboard layouts configured.")
+		}
+	}
 
-	powerCmd := exec.Command("gsettings", "set", "org.gnome.settings-daemon.plugins.power", "sleep-inactive-ac-timeout", "5400")
-	_ = powerCmd.Run()
+	if cfg.ConfigurePower {
+		logger.Info("Configuring Gnome power settings...")
+		powerCmd := exec.Command("gsettings", "set", "org.gnome.settings-daemon.plugins.power", "sleep-inactive-ac-timeout", "5400")
+		if err := powerCmd.Run(); err != nil {
+			logger.Warning("Failed to configure power settings: %v", err)
+		} else {
+			logger.Success("Gnome sleep timeout set to 1.5 hours.")
+		}
+	}
 
 	// 6. Configure Git credentials
 	if cfg.ConfigureGit {
@@ -138,38 +150,40 @@ func ApplyConfig(cfg config.UserConfig, exportSettings bool, out io.Writer) erro
 	}
 
 	// 9. Font Installation & Terminal Font Setup
-	logger.Info("Installing custom fonts...")
-	fontsTargetDir := filepath.Join(homeDir, ".local", "share", "fonts")
-	_ = os.MkdirAll(fontsTargetDir, 0755)
+	if cfg.ConfigureFonts {
+		logger.Info("Installing custom fonts...")
+		fontsTargetDir := filepath.Join(homeDir, ".local", "share", "fonts")
+		_ = os.MkdirAll(fontsTargetDir, 0755)
 
-	displayFontFile := "MPLUS1p-Regular.ttf"
-	terminalFontFile := "MesloLGS NF Regular.ttf"
+		displayFontFile := "MPLUS1p-Regular.ttf"
+		terminalFontFile := "MesloLGS NF Regular.ttf"
 
-	err1 := copyFile(filepath.Join(destDir, "fonts", displayFontFile), filepath.Join(fontsTargetDir, displayFontFile))
-	err2 := copyFile(filepath.Join(destDir, "fonts", terminalFontFile), filepath.Join(fontsTargetDir, terminalFontFile))
+		err1 := copyFile(filepath.Join(destDir, "fonts", displayFontFile), filepath.Join(fontsTargetDir, displayFontFile))
+		err2 := copyFile(filepath.Join(destDir, "fonts", terminalFontFile), filepath.Join(fontsTargetDir, terminalFontFile))
 
-	if err1 != nil || err2 != nil {
-		logger.Warning("Font copy completed with warnings. (Display: %v, Monospace: %v)", err1, err2)
-	} else {
-		logger.Success("Custom fonts copied to local storage.")
-	}
-
-	logger.Info("Refreshing system font cache...")
-	_ = exec.Command("fc-cache", "-f", "-v", fontsTargetDir).Run()
-
-	// Apply Fonts
-	logger.Info("Applying Gnome interface fonts...")
-	_ = exec.Command("gsettings", "set", "org.gnome.desktop.interface", "font-name", "MPLUS1p-Regular 12").Run()
-	_ = exec.Command("gsettings", "set", "org.gnome.desktop.interface", "monospace-font-name", "MesloLGS NF Regular 12").Run()
-
-	// Set Gnome terminal default profile font
-	if profileIDs, err := getGnomeTerminalProfiles(); err == nil && len(profileIDs) > 0 {
-		logger.Info("Configuring terminal profile fonts...")
-		for _, pID := range profileIDs {
-			_ = exec.Command("dconf", "write", fmt.Sprintf("/org/gnome/terminal/legacy/profiles:/:%s/font", pID), "'MesloLGS NF Regular 12'").Run()
-			_ = exec.Command("dconf", "write", fmt.Sprintf("/org/gnome/terminal/legacy/profiles:/:%s/use-system-font", pID), "false").Run()
+		if err1 != nil || err2 != nil {
+			logger.Warning("Font copy completed with warnings. (Display: %v, Monospace: %v)", err1, err2)
+		} else {
+			logger.Success("Custom fonts copied to local storage.")
 		}
-		logger.Success("Monospace font configured in gnome-terminal profiles.")
+
+		logger.Info("Refreshing system font cache...")
+		_ = exec.Command("fc-cache", "-f", "-v", fontsTargetDir).Run()
+
+		// Apply Fonts
+		logger.Info("Applying Gnome interface fonts...")
+		_ = exec.Command("gsettings", "set", "org.gnome.desktop.interface", "font-name", "MPLUS1p-Regular 12").Run()
+		_ = exec.Command("gsettings", "set", "org.gnome.desktop.interface", "monospace-font-name", "MesloLGS NF Regular 12").Run()
+
+		// Set Gnome terminal default profile font
+		if profileIDs, err := getGnomeTerminalProfiles(); err == nil && len(profileIDs) > 0 {
+			logger.Info("Configuring terminal profile fonts...")
+			for _, pID := range profileIDs {
+				_ = exec.Command("dconf", "write", fmt.Sprintf("/org/gnome/terminal/legacy/profiles:/:%s/font", pID), "'MesloLGS NF Regular 12'").Run()
+				_ = exec.Command("dconf", "write", fmt.Sprintf("/org/gnome/terminal/legacy/profiles:/:%s/use-system-font", pID), "false").Run()
+			}
+			logger.Success("Monospace font configured in gnome-terminal profiles.")
+		}
 	}
 
 	// 10. Set up Docker Rootless if requested
@@ -207,20 +221,11 @@ func ApplyConfig(cfg config.UserConfig, exportSettings bool, out io.Writer) erro
 
 	// 12. Export selections to $HOME/.config/config-maker/config.json if requested
 	if exportSettings {
-		configDir := filepath.Join(homeDir, ".config", "config-maker")
-		if err := os.MkdirAll(configDir, 0755); err != nil {
-			logger.Error("Failed to create config export directory: %v", err)
+		if err := config.SaveConfig(cfg); err != nil {
+			logger.Error("Failed to save config: %v", err)
 		} else {
-			configFilePath := filepath.Join(configDir, "config.json")
-			if configData, err := json.MarshalIndent(cfg, "", "  "); err != nil {
-				logger.Error("Failed to marshal config: %v", err)
-			} else {
-				if err := os.WriteFile(configFilePath, configData, 0644); err != nil {
-					logger.Error("Failed to write config file: %v", err)
-				} else {
-					logger.Success("Exported selections to config file: %s", configFilePath)
-				}
-			}
+			configFilePath := filepath.Join(homeDir, ".config", "config-maker", "config.json")
+			logger.Success("Exported selections to config file: %s", configFilePath)
 		}
 	}
 

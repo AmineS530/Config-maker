@@ -18,6 +18,11 @@ func StartServer(port int) error {
 	mux.HandleFunc("/api/export", HandleExport)
 	mux.HandleFunc("/api/stream", HandleStream)
 	mux.HandleFunc("/api/restart", HandleRestart)
+	mux.HandleFunc("/api/select-wallpaper", HandleSelectWallpaper)
+	mux.HandleFunc("/api/wallpaper/preview", HandleWallpaperPreview)
+	mux.HandleFunc("/api/config/default", HandleDefaultConfig)
+	mux.HandleFunc("/api/config/import", HandleImportConfig)
+	mux.HandleFunc("/js/alpine.min.js", HandleAlpineJS)
 
 	addr := fmt.Sprintf("127.0.0.1:%d", port)
 	url := fmt.Sprintf("http://%s", addr)
