@@ -1,5 +1,6 @@
-# Ignore compiled config-maker binary
+# Ignore compiled binaries
 config-maker
+zonerestore
 
 # Ignore local Go compiler folder
 local-go/

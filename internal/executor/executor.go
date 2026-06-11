@@ -3,8 +3,8 @@ package executor
 import (
 	"bufio"
 	"bytes"
-	"config-maker/internal/config"
-	"config-maker/internal/utils"
+	"zonerestore/internal/config"
+	"zonerestore/internal/utils"
 	_ "embed"
 	"fmt"
 	"io"
@@ -230,12 +230,12 @@ func ApplyConfig(cfg config.UserConfig, exportSettings bool, out io.Writer) erro
 		}
 	}
 
-	// 12. Export selections to $HOME/.config/config-maker/config.json if requested
+	// 12. Export selections to $HOME/.config/zonerestore/config.json if requested
 	if exportSettings {
 		if err := config.SaveConfig(cfg); err != nil {
 			logger.Error("Failed to save config: %v", err)
 		} else {
-			configFilePath := filepath.Join(homeDir, ".config", "config-maker", "config.json")
+			configFilePath := filepath.Join(homeDir, ".config", "zonerestore", "config.json")
 			logger.Success("Exported selections to config file: %s", configFilePath)
 		}
 	}

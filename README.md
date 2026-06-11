@@ -1,55 +1,44 @@
-# Public Ubuntu Configuration For Campus
-## Informations:
- - This script was made to make setting up your session after changing it/resetting it easier/less painful
- - Feel free to fork and adjust it to your needs :)
-      ### features:
-      + Makes ZSH as your default terminal, can be undone and re done with `make bash`(to revert to bash as default) or `make zsh` afterwards 
-      + Automatically adds french keyboard layout
-      + changes logout time automatically
-      + Changes terminal settings and defaults using zsh for better experience
-      + Prompts to change wallpaper upon using, you can choose your own, or select one of the pre installed ones from the folder
-      + Changes the theme based on preference
-      + Sets up github/gitea for first time use and to remember your password whenever you use `git push/gp`
-      + Changes default terminal font for compatibility with terminal theme
-      + Set up docker easily with
-        - `make docker`
+# ZoneRestore 🚀
 
-## Requirements:
-- zsh terminal
-  
-## How to use:
-- Download current [release](https://github.com/AmineS530/Config-maker/releases) or `Makefile` from the [repository](https://github.com/AmineS530/Config-maker/blob/main/Makefile)
-  `If downloading the Makefile from the repository make sure to remove the ending '.txt'`
-- Run it using
+**ZoneRestore** is a sleek, unified desktop configuration and session restoration utility designed for students at **Zone01** campus. It makes setting up or restoring your local Ubuntu environment after a machine reset completely painless.
+
+Featuring both an interactive **command-line wizard (TUI)** built with Bubble Tea and a premium **glassmorphic local Web Dashboard** powered by Alpine JS.
+
+---
+
+## Key Features
+
+- **Zsh & Prompt Customization**: Installs Oh-My-Zsh and romkatv's Powerlevel10k theme. Customize your shell prompt display name (PS1) and active Zsh command aliases dynamically.
+- **Git Onboarding**: Fast-tracks Git global credential storage, username, and email setup.
+- **GNOME Desktop Styling**: Configures Gnome interfaces, light/dark themes, sleep power timeout configurations, and keyboard layouts (US and French).
+- **Desktop Backgrounds**: Browse available repository wallpapers with preview, or pick custom images natively using Gnome dialog selectors.
+- **Docker Rootless**: Easily installs Docker inside your user directory without requiring sudo privileges.
+- **Developer Fonts**: Copies custom interface and terminal monospace fonts (`MPLUS` and `MesloLGS NF`) to local storage and updates your GNOME terminal default profiles.
+- **Import/Export Settings**: Export your choices to `~/.config/zonerestore/config.json` or download them as files to instantly restore your workspace next time.
+
+---
+
+## How to Run
+
+Clone the repository and build the Go executable:
+
 ```zsh
-make
+# Build the binary
+go build -o zonerestore cmd/main.go
+
+# Start the interactive web interface directly
+./zonerestore --web --port=8080
+
+# Or run the interactive terminal wizard
+./zonerestore --cli
 ```
 
-## Recent:
-  - Added make [prompt] for script that can be reused
-      + `make git` : redo github/gitea settings
-      + `make theme` : change theme
-      + `make background` : change background
-  - Cleaned Makefile rules
-  - Now upon finishing all instances of gnome-terminal close
-  - Set logout to 1hour
+Otherwise, simply run the executable `./zonerestore` to open the interactive menu selection screen.
 
-## FAQ
-- ### I didn't enter my name or email correctly during first time use:
-    run the following command in same dir as the Makefile:
+---
 
-    ```zsh
-    make git
-    ```
+## Feedback & Contributions
 
-### ToDo:
-- More wallpaper options.
-- Set-up a variable file that can be customized for your own settings after forking
-- adding some 'funsies' such as [sl](https://github.com/thekakester/sl)
-- Adding custom themes aside from the default ones
-- adding VIM customization settings
+Feel free to fork the repository, adapt it to your customized workstation stack, or DM ideas on Discord to `a.sadik`.
 
-## Feedback:
-- If you have any ideas to improve this or have any sort of feedback, feel free to add and DM on Discord `a.sadik`.
-
-# ***Happy coding! :)***
+***Happy Coding! :)***

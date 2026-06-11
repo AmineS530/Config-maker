@@ -2,9 +2,9 @@ package main
 
 import (
 	"bufio"
-	"config-maker/internal/cli"
-	"config-maker/internal/config"
-	"config-maker/internal/web"
+	"zonerestore/internal/cli"
+	"zonerestore/internal/config"
+	"zonerestore/internal/web"
 	"flag"
 	"fmt"
 	"os"
@@ -44,7 +44,7 @@ func main() {
 		case 2: // Import Settings (View saved config.json)
 			cli.ClearTerminal()
 			cfg := config.LoadConfig()
-			fmt.Println("\n\033[0;32m[SUCCESS] Configuration loaded from ~/.config/config-maker/config.json:\033[0m")
+			fmt.Println("\n\033[0;32m[SUCCESS] Configuration loaded from ~/.config/zonerestore/config.json:\033[0m")
 			fmt.Printf("  • Install Oh-My-Zsh:       %t\n", cfg.InstallOhMyZsh)
 			fmt.Printf("  • Configure Git global:    %t (Name: %q, Email: %q)\n", cfg.ConfigureGit, cfg.GitName, cfg.GitEmail)
 			fmt.Printf("  • Apply Desktop Theme:     %t (Theme: %q, Mode: %q)\n", cfg.ApplyTheme, cfg.ThemeName, cfg.ThemeMode)
@@ -60,7 +60,7 @@ func main() {
 				fmt.Printf("\033[0;31m[ERROR] Failed to export settings: %v\033[0m\n", err)
 			} else {
 				homeDir, _ := os.UserHomeDir()
-				configFilePath := filepath.Join(homeDir, ".config", "config-maker", "config.json")
+				configFilePath := filepath.Join(homeDir, ".config", "zonerestore", "config.json")
 				fmt.Printf("\033[0;32m[SUCCESS] Default settings exported successfully to: %s\033[0m\n", configFilePath)
 			}
 			fmt.Print("\nPress Enter to return to menu...")

@@ -1,4 +1,4 @@
-module config-maker
+module zonerestore
 
 go 1.22.4
 

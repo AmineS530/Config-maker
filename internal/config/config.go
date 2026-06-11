@@ -79,7 +79,7 @@ func LoadConfig() UserConfig {
 		return cfg
 	}
 
-	configFilePath := filepath.Join(homeDir, ".config", "config-maker", "config.json")
+	configFilePath := filepath.Join(homeDir, ".config", "zonerestore", "config.json")
 	file, err := os.Open(configFilePath)
 	if err != nil {
 		return cfg // doesn't exist or can't open
@@ -100,7 +100,7 @@ func SaveConfig(cfg UserConfig) error {
 	if err != nil {
 		return err
 	}
-	configDir := filepath.Join(homeDir, ".config", "config-maker")
+	configDir := filepath.Join(homeDir, ".config", "zonerestore")
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return err
 	}

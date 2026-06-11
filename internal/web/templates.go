@@ -7,7 +7,7 @@ const IndexTemplate = `
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Config Maker Dashboard</title>
+    <title>ZoneRestore Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
@@ -546,8 +546,8 @@ const IndexTemplate = `
 
     <div class="container">
         <header>
-            <h1>config-maker</h1>
-            <p>Sleek Desktop Configuration Wizard</p>
+            <h1>ZoneRestore</h1>
+            <p>Desktop Configuration Wizard</p>
             <div style="margin-top: 20px; display: flex; justify-content: center; gap: 16px;">
                 <button class="btn btn-prev" onclick="manualImport()" style="padding: 10px 22px; font-size: 0.85rem; border-radius: 10px; margin-top: 0; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.25); color: #a5b4fc;">📥 Import Settings</button>
             </div>
@@ -603,11 +603,11 @@ const IndexTemplate = `
                 <div id="gitFields">
                     <div class="form-group">
                         <label for="gitName">Full Name / Login</label>
-                        <input type="text" id="gitName" class="text-input" placeholder="e.g. John Doe">
+                        <input type="text" id="gitName" class="text-input" placeholder="e.g. 3elal">
                     </div>
                     <div class="form-group">
                         <label for="gitEmail">Email Address</label>
-                        <input type="email" id="gitEmail" class="text-input" placeholder="e.g. john@example.com">
+                        <input type="email" id="gitEmail" class="text-input" placeholder="e.g. 3elal@example.com">
                     </div>
                 </div>
             </div>
@@ -877,7 +877,7 @@ const IndexTemplate = `
                 <div class="toggle-card" style="margin-top: 24px;">
                     <div class="toggle-info" style="text-align: left;">
                         <div class="toggle-title">Save & Export Settings</div>
-                        <div class="toggle-desc">Automatically save these choices to ~/.config/config-maker/config.json.</div>
+                        <div class="toggle-desc">Automatically save these choices to ~/.config/zonerestore/config.json.</div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="exportSettingsWeb" checked>
@@ -899,7 +899,7 @@ const IndexTemplate = `
                         <span style="width: 12px; height: 12px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
                         <span style="width: 12px; height: 12px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
                     </div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted); font-family: monospace; font-weight: 500;">zsh - config-maker</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); font-family: monospace; font-weight: 500;">zsh - ZoneRestore</div>
                     <div style="width: 52px;"></div>
                 </div>
                 <div class="console-card" id="consoleCard" style="border-radius: 0; border: none; margin-bottom: 0; height: 320px; display: block; background: #09090b;">
@@ -930,7 +930,7 @@ const IndexTemplate = `
     <div id="startupModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(9, 9, 11, 0.85); backdrop-filter: blur(12px); z-index: 1000; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
         <div class="modal-card" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; padding: 40px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); transform: scale(0.95); transition: transform 0.3s ease, opacity 0.3s ease;">
             <div style="font-size: 3rem; margin-bottom: 20px;">⚙️</div>
-            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem; margin-bottom: 12px; color: var(--text-main);">Welcome to Config Maker</h2>
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem; margin-bottom: 12px; color: var(--text-main);">Welcome to ZoneRestore</h2>
             <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 32px; line-height: 1.5;">Configure your shell, tools, and theme preferences to build a dream workspace.</p>
             <div style="display: flex; flex-direction: column; gap: 16px;">
                 <button onclick="selectStartupOption('fresh')" style="background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent)); border: none; color: var(--text-main); padding: 16px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);">

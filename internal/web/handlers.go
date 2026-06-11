@@ -1,8 +1,8 @@
 package web
 
 import (
-	"config-maker/internal/config"
-	"config-maker/internal/executor"
+	"zonerestore/internal/config"
+	"zonerestore/internal/executor"
 	"embed"
 	"encoding/json"
 	"fmt"

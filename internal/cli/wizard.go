@@ -1,9 +1,9 @@
 package cli
 
 import (
-	"config-maker/internal/config"
-	"config-maker/internal/executor"
-	"config-maker/internal/utils"
+	"zonerestore/internal/config"
+	"zonerestore/internal/executor"
+	"zonerestore/internal/utils"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -101,7 +101,7 @@ type tuiModel struct {
 // RunWizard kicks off the interactive Bubble Tea terminal wizard.
 func RunWizard() {
 	homeDir, _ := os.UserHomeDir()
-	configFilePath := filepath.Join(homeDir, ".config", "config-maker", "config.json")
+	configFilePath := filepath.Join(homeDir, ".config", "zonerestore", "config.json")
 	_, err := os.Stat(configFilePath)
 	hasSaved := err == nil
 
@@ -115,7 +115,7 @@ func RunWizard() {
 
 	// Initialize Git text inputs
 	nameInput := textinput.New()
-	nameInput.Placeholder = "e.g. John Doe"
+	nameInput.Placeholder = "e.g. 3elal"
 	nameInput.Focus()
 	nameInput.CharLimit = 64
 	nameInput.Width = 30
@@ -124,7 +124,7 @@ func RunWizard() {
 	}
 
 	emailInput := textinput.New()
-	emailInput.Placeholder = "e.g. john@example.com"
+	emailInput.Placeholder = "e.g. 3elal@example.com"
 	emailInput.CharLimit = 64
 	emailInput.Width = 30
 	if initCfg.GitEmail != "" {
@@ -600,7 +600,7 @@ func (m tuiModel) View() string {
 	switch m.step {
 	case 0: // Import Settings Prompt
 		stepContent = fmt.Sprintf(
-			" Loaded existing configurations in ~/.config/config-maker/config.json.\n\n"+
+			" Loaded existing configurations in ~/.config/zonerestore/config.json.\n\n"+
 				" %sWould you like to import your saved settings?%s\n\n"+
 				"   %s\n   %s",
 			utils.Yellow, utils.Reset,
@@ -810,7 +810,7 @@ func (m tuiModel) View() string {
 				} else {
 					logs.WriteString(fmt.Sprintf("   %s✔ Finished successfully!%s\n\n", utils.Green, utils.Reset))
 					if m.exportPrompt {
-						logs.WriteString(fmt.Sprintf("   %s★ Settings exported successfully to ~/.config/config-maker/config.json%s\n\n", utils.Green, utils.Reset))
+						logs.WriteString(fmt.Sprintf("   %s★ Settings exported successfully to ~/.config/zonerestore/config.json%s\n\n", utils.Green, utils.Reset))
 					} else {
 						logs.WriteString("   Settings were not saved.\n\n")
 					}
