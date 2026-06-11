@@ -2,15 +2,24 @@ package executor
 
 import (
 	"bufio"
+	"bytes"
 	"config-maker/internal/config"
 	"config-maker/internal/utils"
+	_ "embed"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"text/template"
 )
+
+//go:embed assets/.zshrc
+var zshrcTemplate string
+
+//go:embed assets/.p10k.zsh
+var p10kTemplate string
 
 // ApplyConfig runs the orchestration of the setup steps natively in Go.
 func ApplyConfig(cfg config.UserConfig, exportSettings bool, out io.Writer) error {
@@ -57,17 +66,19 @@ func ApplyConfig(cfg config.UserConfig, exportSettings bool, out io.Writer) erro
 	logger.Success("Repository cloned successfully.")
 
 	// 3. Move premade Zsh configurations
-	logger.Info("Copying premade Zsh and Powerlevel10k configurations...")
-	p10kSrc := filepath.Join(destDir, ".p10k.zsh")
+	logger.Info("Generating premade Zsh and Powerlevel10k configurations from embedded templates...")
 	p10kDst := filepath.Join(homeDir, ".p10k.zsh")
-	if err := copyFileIfExists(p10kSrc, p10kDst, logger); err != nil {
-		logger.Warning("Failed to copy .p10k.zsh: %v", err)
+	if err := writeTemplate(p10kTemplate, p10kDst, cfg); err != nil {
+		logger.Warning("Failed to generate .p10k.zsh: %v", err)
+	} else {
+		logger.Success("Generated .p10k.zsh successfully.")
 	}
 
-	zshrcSrc := filepath.Join(destDir, ".zshrc")
 	zshrcDst := filepath.Join(homeDir, ".zshrc")
-	if err := copyFileIfExists(zshrcSrc, zshrcDst, logger); err != nil {
-		logger.Warning("Failed to copy .zshrc: %v", err)
+	if err := writeTemplate(zshrcTemplate, zshrcDst, cfg); err != nil {
+		logger.Warning("Failed to generate .zshrc: %v", err)
+	} else {
+		logger.Success("Generated .zshrc successfully.")
 	}
 
 	// 4. Set up Powerlevel10k theme
@@ -394,4 +405,19 @@ func removeZshFromBashrc(bashrcPath string) error {
 	}
 
 	return os.WriteFile(bashrcPath, []byte(newContent), 0644)
+}
+
+// writeTemplate compiles a text template with cfg config and writes it to destPath.
+func writeTemplate(tmplContent, destPath string, cfg config.UserConfig) error {
+	tmpl, err := template.New("config").Parse(tmplContent)
+	if err != nil {
+		return fmt.Errorf("failed to parse template: %w", err)
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, cfg); err != nil {
+		return fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	return os.WriteFile(destPath, buf.Bytes(), 0644)
 }

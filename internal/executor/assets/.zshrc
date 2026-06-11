@@ -72,7 +72,8 @@ source ~/powerlevel10k/powerlevel10k.zsh-theme
 # ZSH_CUSTOM=/path/to/new-custom-folder
 
 
-alias "quickpush"="gofmt -w . && gaa && gc -m \"quick_add-commit-push alias\" && gp"
+{{range .Aliases}}{{if .Enabled}}alias "{{.Name}}"='{{.Command}}'
+{{end}}{{end}}
 
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/

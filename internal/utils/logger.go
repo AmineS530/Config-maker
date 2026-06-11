@@ -3,17 +3,11 @@ package utils
 import (
 	"fmt"
 	"io"
-	"os"
 )
 
 // Logger provides stylized output methods for CLI terminal formatting.
 type Logger struct {
 	Out io.Writer
-}
-
-// NewLogger creates a new Logger writing to standard output.
-func NewLogger() *Logger {
-	return &Logger{Out: os.Stdout}
 }
 
 // Info prints a cyan info message.

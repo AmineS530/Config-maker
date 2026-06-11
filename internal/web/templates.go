@@ -14,16 +14,16 @@ const IndexTemplate = `
     <script src="/js/alpine.min.js" defer></script>
     <style>
         :root {
-            --bg-color: #09090b;      /* Pure matte black (zinc-950) */
-            --card-bg: #0f0f11;       /* Solid slate-gray card (zinc-900) */
-            --border-color: #27272a;  /* Crisp dark-gray border (zinc-800) */
-            --primary-accent: #3b82f6; /* High-contrast royal blue */
-            --secondary-accent: #1d4ed8; /* Darker blue for state transitions */
-            --text-main: #fafafa;     /* Clean bright off-white (zinc-50) */
-            --text-muted: #8e8e93;    /* Professional medium gray */
-            --success-color: #10b981; /* Pure emerald green */
-            --error-color: #ef4444;   /* Solid red */
-            --warning-color: #f59e0b; /* Solid amber */
+            --bg-color: #030303;      /* Dark obsidian background */
+            --card-bg: rgba(18, 18, 22, 0.7); /* Translucent premium card */
+            --border-color: rgba(255, 255, 255, 0.08); /* Minimal soft border */
+            --primary-accent: #6366f1; /* Indigo violet accent */
+            --secondary-accent: #3b82f6; /* Royal blue secondary */
+            --text-main: #f8fafc;     /* Bright off-white */
+            --text-muted: #94a3b8;    /* Muted cool gray */
+            --success-color: #10b981; /* Emerald green */
+            --error-color: #f43f5e;   /* Soft crimson red */
+            --warning-color: #f59e0b; /* Warm amber */
         }
 
         * {
@@ -44,6 +44,31 @@ const IndexTemplate = `
             position: relative;
         }
 
+        /* Ambient Glow Blobs */
+        .glow-bg {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(160px);
+            opacity: 0.12;
+            z-index: 1;
+            pointer-events: none;
+            transition: all 1s ease;
+        }
+        .glow-1 {
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, var(--primary-accent), transparent 70%);
+            top: -120px;
+            left: -120px;
+        }
+        .glow-2 {
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, var(--secondary-accent), transparent 70%);
+            bottom: -120px;
+            right: -120px;
+        }
+
         .container {
             width: 100%;
             max-width: 680px;
@@ -51,17 +76,20 @@ const IndexTemplate = `
             z-index: 10;
         }
 
-        /* Minimal Header */
+        /* Header Styling */
         header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 36px;
         }
         header h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--text-main);
-            letter-spacing: -0.8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.6rem;
+            font-weight: 800;
+            letter-spacing: -1.2px;
             margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 70%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         header p {
             color: var(--text-muted);
@@ -69,33 +97,31 @@ const IndexTemplate = `
             font-weight: 400;
         }
 
-        /* Premium Minimalist Card */
+        /* Glassmorphism Card */
         .glass-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 20px;
             padding: 36px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-            transition: all 0.2s ease;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
-            overflow: hidden;
         }
 
-        /* Quiet Progress Bar */
+        /* Stepper Progress Bar */
         .progress-container {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 28px;
-            background: none;
-            padding: 0;
-            border: none;
+            margin-bottom: 32px;
         }
         .progress-bar-wrapper {
             flex-grow: 1;
-            height: 4px;
-            background: #1c1c1e;
-            border-radius: 2px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
             margin: 0 16px;
             overflow: hidden;
             position: relative;
@@ -103,82 +129,88 @@ const IndexTemplate = `
         .progress-bar-fill {
             height: 100%;
             width: 0%;
-            background-color: var(--primary-accent);
-            border-radius: 2px;
-            transition: width 0.3s ease;
+            background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent));
+            border-radius: 3px;
+            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .progress-step-text {
             font-size: 0.8rem;
             color: var(--text-muted);
-            font-weight: 500;
-            min-width: 65px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            min-width: 75px;
         }
 
-        /* Step Content transitions */
+        /* Fade-in transitions */
         .step-content {
             display: none;
-            animation: fadeIn 0.2s ease forwards;
+            animation: slideUpFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         .step-content.active {
             display: block;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(4px); }
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(12px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         h2 {
-            font-size: 1.3rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
             font-weight: 600;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             color: var(--text-main);
-            letter-spacing: -0.3px;
+            letter-spacing: -0.4px;
         }
 
-        /* Forms and Controls */
+        /* Form Controls */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
         .form-group label {
             display: block;
             font-size: 0.85rem;
             color: var(--text-muted);
             margin-bottom: 8px;
-            font-weight: 500;
+            font-weight: 600;
+            letter-spacing: 0.2px;
         }
         .text-input {
             width: 100%;
-            background: #161618;
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px 14px;
+            border-radius: 8px;
+            padding: 12px 16px;
             color: var(--text-main);
             font-family: inherit;
             font-size: 0.95rem;
-            transition: all 0.15s ease;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .text-input:focus {
             outline: none;
             border-color: var(--primary-accent);
-            background: #18181b;
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
         }
 
-        /* Minimal Switch Card */
+        /* Toggle Switches */
         .toggle-card {
-            background: #141416;
+            background: rgba(255, 255, 255, 0.01);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 16px 20px;
+            border-radius: 12px;
+            padding: 18px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 16px;
-            transition: all 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .toggle-card:hover {
-            border-color: #3f3f46;
-            background: #161619;
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.03);
+            transform: translateY(-1px);
         }
         .toggle-info {
             max-width: 80%;
@@ -186,19 +218,20 @@ const IndexTemplate = `
         .toggle-title {
             font-weight: 600;
             font-size: 0.95rem;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
         .toggle-desc {
             font-size: 0.8rem;
             color: var(--text-muted);
-            line-height: 1.4;
+            line-height: 1.45;
         }
         
         .switch {
             position: relative;
             display: inline-block;
-            width: 44px;
-            height: 24px;
+            width: 46px;
+            height: 26px;
+            flex-shrink: 0;
         }
         .switch input {
             opacity: 0;
@@ -212,9 +245,10 @@ const IndexTemplate = `
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #27272a;
-            transition: .2s ease;
-            border-radius: 24px;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .25s cubic-bezier(0.16, 1, 0.3, 1);
+            border-radius: 26px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
         .slider:before {
             position: absolute;
@@ -224,17 +258,19 @@ const IndexTemplate = `
             left: 3px;
             bottom: 3px;
             background-color: #fff;
-            transition: .2s ease;
+            transition: .25s cubic-bezier(0.16, 1, 0.3, 1);
             border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         input:checked + .slider {
             background-color: var(--primary-accent);
+            border-color: rgba(99, 102, 241, 0.2);
         }
         input:checked + .slider:before {
             transform: translateX(20px);
         }
 
-        /* Choices Grid (e.g. Dark/Light Mode selectors) */
+        /* Choice Boxes for Grid Mode */
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -242,25 +278,27 @@ const IndexTemplate = `
             margin-bottom: 24px;
         }
         .choice-box {
-            background: #141416;
+            background: rgba(255, 255, 255, 0.01);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 16px;
+            border-radius: 12px;
+            padding: 20px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .choice-box:hover {
-            border-color: #3f3f46;
-            background: #161619;
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.03);
+            transform: translateY(-2px);
         }
         .choice-box.selected {
-            background: #172554;
+            background: rgba(99, 102, 241, 0.1);
             border-color: var(--primary-accent);
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.15);
         }
         .choice-icon {
-            font-size: 1.5rem;
-            margin-bottom: 6px;
+            font-size: 1.6rem;
+            margin-bottom: 8px;
         }
         .choice-title {
             font-weight: 600;
@@ -269,34 +307,36 @@ const IndexTemplate = `
 
         .select-input {
             width: 100%;
-            background: #161618;
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px 14px;
+            border-radius: 8px;
+            padding: 12px 16px;
             color: var(--text-main);
             font-family: inherit;
             font-size: 0.95rem;
             cursor: pointer;
             outline: none;
+            transition: all 0.2s ease;
         }
         .select-input:focus {
             border-color: var(--primary-accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
         }
 
-        /* Minimal Summary Items list */
+        /* Summary Setup Overview */
         .summary-list {
-            background: #141416;
+            background: rgba(255, 255, 255, 0.01);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
         .summary-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #1c1c1f;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
         }
         .summary-row:last-child {
             border-bottom: none;
@@ -313,34 +353,35 @@ const IndexTemplate = `
             font-weight: 600;
         }
         .indicator {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             display: inline-block;
             margin-right: 8px;
         }
         .indicator.enabled {
             background-color: var(--success-color);
+            box-shadow: 0 0 8px var(--success-color);
         }
         .indicator.disabled {
-            background-color: #3f3f46;
+            background-color: rgba(255,255,255,0.2);
         }
 
-        /* Sleek flat buttons */
+        /* Action Buttons */
         .btn-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 28px;
+            margin-top: 32px;
         }
         .btn {
             font-family: inherit;
             font-size: 0.9rem;
             font-weight: 600;
-            padding: 12px 24px;
-            border-radius: 6px;
+            padding: 12px 26px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             border: none;
             display: inline-flex;
             align-items: center;
@@ -348,91 +389,168 @@ const IndexTemplate = `
             text-decoration: none;
         }
         .btn-prev {
-            background: #18181b;
+            background: rgba(255, 255, 255, 0.03);
             color: var(--text-main);
             border: 1px solid var(--border-color);
         }
         .btn-prev:hover {
-            background: #27272a;
-            border-color: #3f3f46;
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
         }
         .btn-next {
-            background: var(--primary-accent);
+            background: linear-gradient(135deg, var(--primary-accent), var(--secondary-accent));
             color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
         }
         .btn-next:hover {
-            background: var(--secondary-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+            filter: brightness(1.1);
+        }
+        .btn-next:active {
+            transform: translateY(0);
         }
 
-        /* Solid Console Logger (Matte black/monochrome output) */
-        .console-card {
+        /* Floating Toast Alert Box */
+        #toastNotification {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 10000;
+            max-width: 380px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+            font-size: 0.9rem;
+            font-weight: 600;
             display: none;
-            background: #000;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(120%) translateY(-10px); opacity: 0; }
+            to { transform: translateX(0) translateY(0); opacity: 1; }
+        }
+
+        /* macOS Console Style Terminal */
+        .console-card {
+            background: #09090b;
             padding: 20px;
             font-family: 'SFMono-Regular', Consolas, "Liberation Mono", Menlo, Courier, monospace;
-            height: 360px;
+            height: 340px;
             overflow-y: auto;
-            color: #d4d4d8;
-            margin-bottom: 20px;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.9);
-        }
-        .console-card.active {
-            display: block;
+            color: #e4e4e7;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.8);
         }
         .console-line {
             margin-bottom: 6px;
             white-space: pre-wrap;
-            line-height: 1.4;
+            line-height: 1.5;
             font-size: 0.85rem;
         }
         .console-pulse-container {
             display: flex;
             align-items: center;
-            margin-bottom: 14px;
             color: var(--text-muted);
-            font-size: 0.8rem;
+            font-size: 0.85rem;
         }
         .pulse-dot {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background-color: var(--primary-accent);
-            margin-right: 8px;
-            animation: pulse 1s infinite;
+            margin-right: 10px;
+            animation: pulse 1.2s infinite;
+            box-shadow: 0 0 6px var(--primary-accent);
         }
         @keyframes pulse {
-            0% { opacity: 0.4; }
+            0% { opacity: 0.3; }
             50% { opacity: 1; }
-            100% { opacity: 0.4; }
+            100% { opacity: 0.3; }
+        }
+
+        /* Modal Overlays & Cards */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(3, 3, 3, 0.75);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .modal-card {
+            background: rgba(18, 18, 22, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
         }
 
         /* Clean Finish View */
         .finish-view {
             display: none;
             text-align: center;
-            padding: 20px 0;
+            padding: 24px 0;
         }
         .finish-view.active {
             display: block;
         }
         .finish-icon {
-            font-size: 3rem;
-            margin-bottom: 12px;
+            font-size: 3.5rem;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 0 10px rgba(99,102,241,0.3));
+        }
+
+        /* Custom Alias item card design */
+        .alias-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            transition: all 0.2s ease;
+        }
+        .alias-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255,255,255,0.15);
         }
     </style>
 </head>
 <body>
+    <!-- Ambient Blur Background Blobs -->
+    <div class="glow-bg glow-1"></div>
+    <div class="glow-bg glow-2"></div>
+
+    <!-- Floating Toast Notifications -->
+    <div id="toastNotification"></div>
 
     <div class="container">
         <header>
             <h1>config-maker</h1>
             <p>Sleek Desktop Configuration Wizard</p>
             <div style="margin-top: 20px; display: flex; justify-content: center; gap: 16px;">
-                <button class="btn btn-prev" onclick="manualImport()" style="padding: 10px 20px; font-size: 0.9rem; border-radius: 12px; margin-top: 0; background: rgba(14, 165, 233, 0.1); border-color: var(--primary-accent);">📥 Import Settings</button>
+                <button class="btn btn-prev" onclick="manualImport()" style="padding: 10px 22px; font-size: 0.85rem; border-radius: 10px; margin-top: 0; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.25); color: #a5b4fc;">📥 Import Settings</button>
             </div>
-            <div id="toastNotification" style="display: none; margin-top: 16px; padding: 10px 20px; border-radius: 12px; font-size: 0.9rem; font-weight: 500; text-align: center; animation: fadeInSlide 0.3s ease;"></div>
         </header>
 
         <div class="glass-card" id="wizardCard">
@@ -631,6 +749,80 @@ const IndexTemplate = `
                         <span class="slider"></span>
                     </label>
                 </div>
+
+                <!-- Alpine JS Shell customization wrapper -->
+                <div x-data="{
+                    customUsername: '',
+                    aliases: [],
+                    newAliasName: '',
+                    newAliasCommand: '',
+                    init() {
+                        document.addEventListener('load-aliases', (e) => {
+                            this.customUsername = e.detail.customUsername || '';
+                            this.aliases = e.detail.aliases || [];
+                        });
+                    },
+                    addAlias() {
+                        if (this.newAliasName.trim() && this.newAliasCommand.trim()) {
+                            this.aliases.push({
+                                name: this.newAliasName.trim(),
+                                command: this.newAliasCommand.trim(),
+                                enabled: true
+                            });
+                            this.newAliasName = '';
+                            this.newAliasCommand = '';
+                        }
+                    },
+                    removeAlias(index) {
+                        this.aliases.splice(index, 1);
+                    }
+                }" @get-aliases.window="$event.detail.callback({ customUsername: customUsername, aliases: aliases })" style="margin-top: 24px; padding-top: 24px; border-top: 1px dashed var(--border-color);">
+                    
+                    <!-- Custom Username for Prompt (PS1) -->
+                    <div class="form-group">
+                        <label for="customUsernameInput" style="font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">Prompt Display Name (PS1)</label>
+                        <input type="text" id="customUsernameInput" class="text-input" x-model="customUsername" placeholder="e.g. myname" style="width: 100%; max-width: 100%;">
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Leaves segment hidden if empty. Defaults to system username.</div>
+                    </div>
+
+                    <!-- Zsh Aliases Section -->
+                    <div style="margin-top: 28px;">
+                        <label style="font-weight: 600; color: var(--text-main); display: block; margin-bottom: 12px;">Configure Zsh Aliases</label>
+                        
+                        <!-- Default & Custom Aliases List -->
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <template x-for="(alias, index) in aliases" :key="index">
+                                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+                                    <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                                        <label class="switch" style="flex-shrink: 0;">
+                                            <input type="checkbox" x-model="alias.enabled">
+                                            <span class="slider"></span>
+                                        </label>
+                                        <div style="word-break: break-all;">
+                                            <strong style="color: var(--primary-accent); font-family: monospace; font-size: 0.95rem;" x-text="alias.name"></strong>
+                                            <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;" x-text="'= ' + alias.command"></span>
+                                        </div>
+                                    </div>
+                                    <button type="button" @click="removeAlias(index)" style="background: none; border: none; color: var(--error-color); cursor: pointer; font-size: 1rem; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.background='none'">
+                                        ❌
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Add New Alias Form -->
+                        <div style="margin-top: 16px; background: rgba(255, 255, 255, 0.01); border: 1px dashed var(--border-color); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+                            <div style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">➕ Add Custom Alias</div>
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                <input type="text" x-model="newAliasName" placeholder="alias name (e.g. gp)" class="text-input" style="flex: 1; min-width: 150px; font-family: monospace; font-size: 0.9rem; margin-top: 0;">
+                                <input type="text" x-model="newAliasCommand" placeholder="command (e.g. git push)" class="text-input" style="flex: 2; min-width: 200px; font-family: monospace; font-size: 0.9rem; margin-top: 0;">
+                            </div>
+                            <button type="button" @click="addAlias()" class="btn" style="align-self: flex-start; background: rgba(139, 92, 246, 0.2); border: 1px solid var(--secondary-accent); color: var(--text-light); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">
+                                Add Alias
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- STEP 6: Summary & Confirmation -->
@@ -673,6 +865,14 @@ const IndexTemplate = `
                         <span class="summary-label">Install Custom Fonts</span>
                         <span class="summary-value" id="sumFonts"><span class="indicator"></span><span></span></span>
                     </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Prompt Display Name</span>
+                        <span class="summary-value" id="sumPromptName"><span></span></span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Active Zsh Aliases</span>
+                        <span class="summary-value" id="sumAliases"><span></span></span>
+                    </div>
                 </div>
                 <div class="toggle-card" style="margin-top: 24px;">
                     <div class="toggle-info" style="text-align: left;">
@@ -687,12 +887,24 @@ const IndexTemplate = `
             </div>
 
             <!-- Streaming Console View -->
-            <div class="console-pulse-container" id="pulseContainer" style="display: none;">
+            <div class="console-pulse-container" id="pulseContainer" style="display: none; margin-bottom: 16px; justify-content: center;">
                 <div class="pulse-dot"></div>
-                <span id="consoleStatusText">Applying changes... Please wait.</span>
+                <span id="consoleStatusText" style="font-weight: 500;">Applying changes... Please wait.</span>
             </div>
-            <div class="console-card" id="consoleCard">
-                <!-- Exec logs shown live -->
+            
+            <div class="terminal-window" id="terminalWindow" style="display: none; margin-bottom: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);">
+                <div class="terminal-header" style="background: #141416; border-bottom: 1px solid var(--border-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; gap: 8px;">
+                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
+                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
+                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); font-family: monospace; font-weight: 500;">zsh - config-maker</div>
+                    <div style="width: 52px;"></div>
+                </div>
+                <div class="console-card" id="consoleCard" style="border-radius: 0; border: none; margin-bottom: 0; height: 320px; display: block; background: #09090b;">
+                    <!-- Exec logs shown live -->
+                </div>
             </div>
 
             <!-- Finish View -->
@@ -822,6 +1034,12 @@ const IndexTemplate = `
             document.getElementById("configureKeyboard").checked = cfg.configure_keyboard !== false;
             document.getElementById("configurePower").checked = cfg.configure_power !== false;
             document.getElementById("configureFonts").checked = cfg.configure_fonts !== false;
+
+            // Dispatch to Alpine
+            document.dispatchEvent(new CustomEvent('load-aliases', { detail: {
+                customUsername: cfg.custom_username,
+                aliases: cfg.aliases
+            }}));
         }
 
         async function selectStartupOption(option) {
@@ -1053,6 +1271,16 @@ const IndexTemplate = `
             updateSummaryRow("sumKeyboard", document.getElementById("configureKeyboard").checked, "Configure Keyboard Layouts", "Skip Keyboard Layouts");
             updateSummaryRow("sumPower", document.getElementById("configurePower").checked, "Configure Power Settings", "Skip Power Settings");
             updateSummaryRow("sumFonts", document.getElementById("configureFonts").checked, "Install Custom Fonts", "Skip Fonts");
+
+            let aliasesData = { customUsername: '', aliases: [] };
+            document.dispatchEvent(new CustomEvent('get-aliases', {
+                detail: { callback: (data) => { aliasesData = data; } }
+            }));
+            const customUsername = aliasesData.customUsername || "Default (None)";
+            const activeAliasesCount = (aliasesData.aliases || []).filter(a => a.enabled).length;
+
+            document.getElementById("sumPromptName").querySelector("span").textContent = customUsername;
+            document.getElementById("sumAliases").querySelector("span").textContent = activeAliasesCount + " Enabled";
         }
 
         function updateSummaryRow(elementId, enabled, activeText, inactiveText) {
@@ -1092,6 +1320,13 @@ const IndexTemplate = `
             const configurePower = document.getElementById("configurePower").checked;
             const configureFonts = document.getElementById("configureFonts").checked;
 
+            let aliasesData = { customUsername: '', aliases: [] };
+            document.dispatchEvent(new CustomEvent('get-aliases', {
+                detail: { callback: (data) => { aliasesData = data; } }
+            }));
+            const customUsername = aliasesData.customUsername;
+            const aliases = aliasesData.aliases;
+
             const payload = {
                 install_oh_my_zsh: installZsh,
                 configure_git: configureGit,
@@ -1106,7 +1341,9 @@ const IndexTemplate = `
                 enable_zsh_default: enableZshDefault,
                 configure_keyboard: configureKeyboard,
                 configure_power: configurePower,
-                configure_fonts: configureFonts
+                configure_fonts: configureFonts,
+                custom_username: customUsername,
+                aliases: aliases
             };
 
             // Switch to console view
@@ -1114,7 +1351,7 @@ const IndexTemplate = `
             document.getElementById("step6").style.display = "none";
             document.getElementById("btnRow").style.display = "none";
             document.getElementById("pulseContainer").style.display = "flex";
-            document.getElementById("consoleCard").classList.add("active");
+            document.getElementById("terminalWindow").style.display = "block";
 
             try {
                 // Post config
@@ -1145,7 +1382,7 @@ const IndexTemplate = `
                     // Stream closed or error
                     eventSource.close();
                     document.getElementById("pulseContainer").style.display = "none";
-                    document.getElementById("consoleCard").style.borderColor = "var(--success-color)";
+                    document.getElementById("terminalWindow").style.borderColor = "var(--success-color)";
                     
                     // Show finish view
                     document.getElementById("finishView").classList.add("active");
@@ -1234,6 +1471,13 @@ const IndexTemplate = `
                 const configurePower = document.getElementById("configurePower").checked;
                 const configureFonts = document.getElementById("configureFonts").checked;
 
+                let aliasesData = { customUsername: '', aliases: [] };
+                document.dispatchEvent(new CustomEvent('get-aliases', {
+                    detail: { callback: (data) => { aliasesData = data; } }
+                }));
+                const customUsername = aliasesData.customUsername;
+                const aliases = aliasesData.aliases;
+
                 const payload = {
                     install_oh_my_zsh: installZsh,
                     configure_git: configureGit,
@@ -1248,7 +1492,9 @@ const IndexTemplate = `
                     enable_zsh_default: enableZshDefault,
                     configure_keyboard: configureKeyboard,
                     configure_power: configurePower,
-                    configure_fonts: configureFonts
+                    configure_fonts: configureFonts,
+                    custom_username: customUsername,
+                    aliases: aliases
                 };
 
                 const res = await fetch('/api/export', {

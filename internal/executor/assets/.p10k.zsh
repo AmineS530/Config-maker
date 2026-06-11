@@ -19,7 +19,7 @@
 [[ ! -o 'no_brace_expand' ]] || p10k_config_opts+=('no_brace_expand')
 'builtin' 'setopt' 'no_aliases' 'no_sh_glob' 'brace_expand'
 
-slogin=$(whoami)
+slogin="{{if .CustomUsername}}{{.CustomUsername}}{{else}}$(whoami){{end}}"
 
 () {
   emulate -L zsh -o extended_glob
@@ -35,6 +35,7 @@ slogin=$(whoami)
   typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
     # =========================[ Line #1 ]=========================
     # os_icon               # os identifier
+    custom_username         # custom prompt username
     dir                     # current directory
     vcs                     # git status
     # =========================[ Line #2 ]=========================
@@ -1733,6 +1734,11 @@ slogin=$(whoami)
   # can slow down prompt by 1-2 milliseconds, so it's better to keep it turned off unless you
   # really need it.
   typeset -g POWERLEVEL9K_DISABLE_HOT_RELOAD=true
+
+  # Custom username prompt segment
+  typeset -g POWERLEVEL9K_CUSTOM_USERNAME="echo '{{.CustomUsername}}'"
+  typeset -g POWERLEVEL9K_CUSTOM_USERNAME_FOREGROUND=255
+  typeset -g POWERLEVEL9K_CUSTOM_USERNAME_BACKGROUND=62
 
   # If p10k is already loaded, reload configuration.
   # This works even with POWERLEVEL9K_DISABLE_HOT_RELOAD=true.
