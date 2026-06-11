@@ -1,6 +1,6 @@
 # ZoneRestore 🚀
 
-**ZoneRestore** is a sleek, unified desktop configuration and session restoration utility designed for students at **Zone01** campus. It makes setting up or restoring your local Ubuntu environment after a machine reset completely painless.
+**ZoneRestore** is a unified desktop configuration and session restoration utility designed for students at **Zone01** campus. It makes setting up or restoring your local Ubuntu environment after a machine reset completely painless.
 
 Featuring both an interactive **command-line wizard (TUI)** built with Bubble Tea and a premium **glassmorphic local Web Dashboard** powered by Alpine JS.
 
