@@ -3,7 +3,7 @@
 set -euo pipefail
 
 REPO="AmineS530/Config-maker"
-BINARY_NAME="config-maker"
+BINARY_NAME="zonerestore"
 INSTALL_DIR="$HOME/bin"
 
 echo "Fetching latest release..."
