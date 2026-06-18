@@ -2,17 +2,21 @@
 
 set -euo pipefail
 
-REPO="AmineS530/Config-maker"
+REPO="AmineS530/ZoneRestore"
 BINARY_NAME="zonerestore"
 INSTALL_DIR="$HOME/bin"
 
 echo "Fetching latest release..."
 
 VERSION=$(curl -fsSL \
-  "https://api.github.com/repos/${REPO}/releases/latest" \
-  | sed -n 's/.*"tag_name": "\(.*\)".*/\1/p')
+    "https://api.github.com/repos/${REPO}/releases/latest" \
+    | grep '"tag_name"' \
+    | cut -d '"' -f 4)
 
-echo "Latest version: $VERSION"
+if [ -z "$VERSION" ]; then
+    echo "Failed to fetch latest release."
+    exit 1
+fi
 
 DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/${BINARY_NAME}"
 
@@ -20,11 +24,15 @@ mkdir -p "$INSTALL_DIR"
 
 echo "Downloading ${BINARY_NAME} ${VERSION}..."
 
-curl -fL \
-  -o "$INSTALL_DIR/$BINARY_NAME" \
-  "$DOWNLOAD_URL"
+TMP_FILE=$(mktemp)
 
-chmod +x "$INSTALL_DIR/$BINARY_NAME"
+curl -fL \
+    -o "$TMP_FILE" \
+    "$DOWNLOAD_URL"
+
+chmod +x "$TMP_FILE"
+
+mv "$TMP_FILE" "$INSTALL_DIR/$BINARY_NAME"
 
 PATH_LINE='export PATH="$HOME/bin:$PATH"'
 
