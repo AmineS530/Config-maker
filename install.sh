@@ -3,7 +3,7 @@
 set -euo pipefail
 
 REPO="AmineS530/ZoneRestore"
-BINARY_NAME="zonerestore"
+BINARY_NAME="ZoneRestore"
 INSTALL_DIR="$HOME/bin"
 
 echo "Fetching latest release..."
