@@ -66,8 +66,8 @@ func (m menuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m menuModel) View() string {
 	var s strings.Builder
 
-	// Top title header panel
-	s.WriteString(titleStyle.Render("   CONFIG MAKER - INTERACTIVE MENU   ") + "\n\n")
+	// Top Title and ASCII brand banner
+	s.WriteString(activeItemStyle.Render(asciiBanner) + "\n")
 
 	// Render choices list
 	var content strings.Builder
@@ -86,8 +86,9 @@ func (m menuModel) View() string {
 	// Bottom navigation help notes
 	content.WriteString("\n" + helpStyle.Render("Use Up/Down (or j/k) to select, Enter to confirm, q to exit."))
 
-	// Wrap entire content in a clean slate-gray box
-	s.WriteString(boxStyle.Render(content.String()))
+	// Wrap entire content in a clean slate-gray box with responsive width
+	responsiveBoxStyle := boxStyle.Width(64)
+	s.WriteString(responsiveBoxStyle.Render(content.String()))
 	return s.String()
 }
 
@@ -99,7 +100,6 @@ func RunMenu() int {
 			"CLI Wizard (Bubble Tea TUI)",
 			"Web Dashboard (Local Server)",
 			"Import Settings (View config.json)",
-			"Export Defaults (Reset config.json)",
 			"Exit",
 		},
 		selected: -1,

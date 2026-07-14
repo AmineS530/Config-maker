@@ -8,97 +8,13 @@ import (
 
 	"zonerestore/internal/config"
 	"zonerestore/internal/executor"
-	"zonerestore/internal/utils"
+	"zonerestore/internal/themes"
 
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
-
-// Lipgloss TUI Styles
-var (
-	cyan       = lipgloss.Color("15")  // Crisp white for active items and highlights
-	purple     = lipgloss.Color("240") // Dark slate gray for subtle borders
-	green      = lipgloss.Color("120")
-	red        = lipgloss.Color("196")
-	gray       = lipgloss.Color("243") // Muted gray for secondary items
-	obsidianBg = lipgloss.Color("233")
-
-	titleStyle = lipgloss.NewStyle().
-			Foreground(cyan).
-			Bold(true).
-			Padding(0, 1).
-			Border(lipgloss.NormalBorder()).
-			BorderForeground(purple)
-
-	boxStyle = lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder()).
-			BorderForeground(purple).
-			Padding(1, 2).
-			Width(74)
-
-	activeItemStyle = lipgloss.NewStyle().
-			Foreground(cyan).
-			Bold(true)
-
-	inactiveItemStyle = lipgloss.NewStyle().
-				Foreground(gray)
-
-	successStyle = lipgloss.NewStyle().
-			Foreground(green)
-
-	errorStyle = lipgloss.NewStyle().
-			Foreground(red)
-
-	helpStyle = lipgloss.NewStyle().
-			Foreground(gray).
-			Italic(true)
-)
-
-// Custom TUI Message definitions
-type (
-	logLineMsg      string
-	execFinishedMsg struct {
-		err error
-	}
-)
-
-type tuiModel struct {
-	step             int // 0 to 7
-	cfg              config.UserConfig
-	hasSavedSettings bool
-	importPrompt     bool // true = Yes, false = No
-
-	// TUI selectors cursors
-	ohMyZshChoice    bool // true = Yes, false = No
-	configureGit     bool // true = Yes, false = No
-	applyTheme       bool // true = Yes, false = No
-	themeModeCursor  int  // 0 = Dark, 1 = Light
-	themeCursor      int  // index in availableThemes
-	availableThemes  []string
-	applyBg          bool // true = Yes, false = No
-	bgChoiceCursor   int  // 0 = Predefined, 1 = Repo List, 2 = Custom Path
-	wallpaperCursor  int  // index in repoWallpapers
-	repoWallpapers   []string
-	enableDocker     bool // true = Yes, false = No
-	enableZshDefault bool // true = Yes, false = No
-	exportPrompt     bool // true = Yes, false = No
-	importedSettings bool // true if settings were imported at Step 0
-	exportDone       bool // true if final export step finished
-
-	// Form text inputs
-	gitNameInput  textinput.Model
-	gitEmailInput textinput.Model
-	customBgInput textinput.Model
-	focusedInput  int // 0 or 1 for Git, 0 for Custom Path
-
-	// Execution logs state
-	applying bool
-	finished bool
-	err      error
-	logChan  chan tea.Msg
-	logLines []string
-}
 
 // RunWizard kicks off the interactive Bubble Tea terminal wizard.
 func RunWizard() {
@@ -117,20 +33,20 @@ func RunWizard() {
 
 	// Initialize Git text inputs
 	nameInput := textinput.New()
-	nameInput.Placeholder = "e.g. 3elal"
+	nameInput.Placeholder = "e.g. username"
 	nameInput.Focus()
 	nameInput.CharLimit = 64
 	nameInput.Width = 30
-	if initCfg.GitName != "" {
-		nameInput.SetValue(initCfg.GitName)
+	if initCfg.Git.GitName != "" {
+		nameInput.SetValue(initCfg.Git.GitName)
 	}
 
 	emailInput := textinput.New()
-	emailInput.Placeholder = "e.g. 3elal@example.com"
+	emailInput.Placeholder = "e.g. username@example.com"
 	emailInput.CharLimit = 64
 	emailInput.Width = 30
-	if initCfg.GitEmail != "" {
-		emailInput.SetValue(initCfg.GitEmail)
+	if initCfg.Git.GitEmail != "" {
+		emailInput.SetValue(initCfg.Git.GitEmail)
 	}
 
 	// Initialize custom background path input
@@ -138,17 +54,36 @@ func RunWizard() {
 	customBgInput.Placeholder = "/home/user/Pictures/wallpaper.jpg"
 	customBgInput.CharLimit = 256
 	customBgInput.Width = 45
-	if initCfg.BackgroundImage != "" && !strings.Contains(initCfg.BackgroundImage, "ZoneRestore") {
-		customBgInput.SetValue(initCfg.BackgroundImage)
+	if initCfg.Wallpaper.BackgroundImage != "" && !strings.Contains(initCfg.Wallpaper.BackgroundImage, "ZoneRestoreThemes") {
+		customBgInput.SetValue(initCfg.Wallpaper.BackgroundImage)
 	}
 
-	// Initial scanning of themes and wallpapers
-	themes := getSystemThemes("1")
-	wallpapers := []string{
-		"976013.jpg",
-		"Rin_Shima_Level_Up_Your_Web_Apps_With_Go.png",
-		"wallpaper-01.png",
+	// Initialize themes and wallpapers dynamically from repository
+	themesRoot := themes.Root()
+	repoWallpapers := themes.ListWallpapers(themesRoot)
+	if len(repoWallpapers) == 0 {
+		repoWallpapers = []string{
+			"976013.jpg",
+			"Rin_Shima_Level_Up_Your_Web_Apps_With_Go.png",
+			"wallpaper-01.png",
+		}
 	}
+
+	repoFonts := themes.ListFonts(themesRoot)
+	if len(repoFonts) == 0 {
+		repoFonts = []string{
+			"MesloLGS NF",
+			"Fira Code",
+			"JetBrains Mono",
+		}
+	}
+
+	systemThemes := getSystemThemes("1")
+
+	// Set up execution console spinner
+	sp := spinner.New()
+	sp.Spinner = spinner.Dot
+	sp.Style = lipgloss.NewStyle().Foreground(brandCyan)
 
 	m := tuiModel{
 		step:             0,
@@ -157,44 +92,66 @@ func RunWizard() {
 		importPrompt:     true,
 
 		// Pre-populate selections from loaded config
-		ohMyZshChoice:    initCfg.InstallOhMyZsh,
-		configureGit:     initCfg.ConfigureGit,
-		applyTheme:       initCfg.ApplyTheme,
-		themeModeCursor:  0, // default dark
+		ohMyZshChoice:   initCfg.Zsh.InstallOhMyZsh,
+		configureGit:    initCfg.Git.ConfigureGit,
+		applyTheme:      initCfg.Theme.ApplyTheme,
+		themeModeCursor: 0, // default dark
 		themeCursor:      0,
-		availableThemes:  themes,
-		applyBg:          initCfg.ApplyBackground,
-		bgChoiceCursor:   0,
-		wallpaperCursor:  0,
-		repoWallpapers:   wallpapers,
-		enableDocker:     initCfg.EnableDocker,
-		enableZshDefault: initCfg.EnableZshDefault,
-		exportPrompt:     true,
+		availableThemes:  systemThemes,
+
+		applyFonts:     initCfg.Fonts.ConfigureFonts,
+		fontCursor:     0,
+		availableFonts: repoFonts,
+
+		applyBg:         initCfg.Wallpaper.ApplyBackground,
+		bgChoiceCursor:  0,
+		wallpaperCursor: 0,
+		repoWallpapers:  repoWallpapers,
+
+		enableDocker:      initCfg.Docker.EnableDocker,
+		enableZshDefault:  initCfg.Shell.EnableZshDefault,
+		pinDiscord:        initCfg.Dock.PinDiscord,
+		configureKeyboard: initCfg.Keyboard.ConfigureKeyboard,
+		addArabic:         initCfg.Keyboard.AddArabic,
+		configurePower:    initCfg.Power.ConfigurePower,
+
+		exportPrompt: true,
 
 		gitNameInput:  nameInput,
 		gitEmailInput: emailInput,
 		customBgInput: customBgInput,
 		focusedInput:  0,
 		logChan:       make(chan tea.Msg, 100),
+		spinner:       sp,
 	}
 
-	if initCfg.ThemeMode == "2" {
+	if initCfg.Theme.ThemeMode == "2" {
 		m.themeModeCursor = 1
 	}
 
 	// Resolve the background image type based on loaded path
-	if initCfg.BackgroundImage != "" {
-		if strings.Contains(initCfg.BackgroundImage, "wallpapers/") {
+	if initCfg.Wallpaper.BackgroundImage != "" {
+		if strings.Contains(initCfg.Wallpaper.BackgroundImage, "themes/wallpapers/") {
 			m.bgChoiceCursor = 1
-			filename := filepath.Base(initCfg.BackgroundImage)
-			for idx, wp := range wallpapers {
+			filename := filepath.Base(initCfg.Wallpaper.BackgroundImage)
+			for idx, wp := range repoWallpapers {
 				if wp == filename {
 					m.wallpaperCursor = idx
 					break
 				}
 			}
-		} else if !strings.Contains(initCfg.BackgroundImage, "Background.jpeg") {
+		} else if !strings.Contains(initCfg.Wallpaper.BackgroundImage, "Background.jpeg") {
 			m.bgChoiceCursor = 2
+		}
+	}
+
+	// Resolve the font configuration selection
+	if initCfg.Fonts.FontName != "" {
+		for idx, f := range repoFonts {
+			if f == initCfg.Fonts.FontName {
+				m.fontCursor = idx
+				break
+			}
 		}
 	}
 
@@ -244,189 +201,187 @@ func (tlw *tuiLogWriter) Write(p []byte) (int, error) {
 	lines := strings.Split(string(p), "\n")
 	for _, l := range lines {
 		trimmed := strings.TrimSpace(l)
-		if len(trimmed) > 0 {
-			// Strip raw ANSI color escape codes for clean terminal TUI lines
-			trimmed = stripAnsiColors(trimmed)
+		if trimmed != "" {
+			// Strip ANSI escape colors to keep local logs clean
+			trimmed = strings.ReplaceAll(trimmed, "\r", "")
+			trimmed = strings.ReplaceAll(trimmed, "\033[0m", "")
+			trimmed = strings.ReplaceAll(trimmed, "\033[0;31m", "")
+			trimmed = strings.ReplaceAll(trimmed, "\033[0;32m", "")
+			trimmed = strings.ReplaceAll(trimmed, "\033[0;33m", "")
+			trimmed = strings.ReplaceAll(trimmed, "\033[0;36m", "")
+			trimmed = strings.ReplaceAll(trimmed, "\033[1;0;31m", "")
+			trimmed = strings.ReplaceAll(trimmed, "\033[1;0;32m", "")
+			trimmed = strings.ReplaceAll(trimmed, "\033[1;0;33m", "")
+			trimmed = strings.ReplaceAll(trimmed, "\033[1;0;36m", "")
+			trimmed = strings.ReplaceAll(trimmed, "\033[1m\033[92m", "")
 			tlw.sub <- logLineMsg(trimmed)
 		}
 	}
 	return len(p), nil
 }
 
-func stripAnsiColors(s string) string {
-	r := strings.NewReplacer(
-		"\033[0m", "", "\033[0;31m", "", "\033[0;32m", "",
-		"\033[0;33m", "", "\033[0;36m", "", "\033[1;0;31m", "",
-		"\033[1;0;32m", "", "\033[1;0;33m", "", "\033[1;0;36m", "",
-		"\033[1m\033[92m", "",
-	)
-	return r.Replace(s)
-}
-
 func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		return m, nil
+
 	case tea.KeyMsg:
-		// Global abort
-		if msg.String() == "ctrl+c" || (m.step != 7 && (msg.String() == "q" || msg.String() == "esc")) {
-			if m.applying && !m.finished {
-				return m, nil // prevent quit during execution
-			}
+		// Master exit keys (anytime unless running configuration)
+		if (msg.String() == "ctrl+c" || msg.String() == "q" || msg.String() == "esc") && !m.applying {
 			return m, tea.Quit
 		}
 
-		if m.applying {
-			if m.finished {
-				if m.err != nil {
-					if msg.String() == "enter" || msg.String() == "q" || msg.String() == "esc" {
-						return m, tea.Quit
-					}
-				} else {
-					// Successful execution: show the export prompt if not done
-					if !m.exportDone {
-						switch msg.String() {
-						case "left", "right", "tab", "h", "l", "up", "down", "j", "k":
-							m.exportPrompt = !m.exportPrompt
-							return m, nil
-						case "enter":
-							if m.exportPrompt {
-								// Export choices using unified config helper
-								_ = config.SaveConfig(m.cfg)
-							}
-							m.exportDone = true
-							return m, nil
-						}
-					} else {
-						// Exits cleanly to restart the terminal
-						if msg.String() == "enter" {
-							return m, tea.Quit
-						}
-					}
-				}
-			}
-			return m, nil // lock keys during apply
+		// When applying, spinner continues running
+		if m.applying && !m.finished {
+			var cmd tea.Cmd
+			m.spinner, cmd = m.spinner.Update(msg)
+			return m, cmd
 		}
 
-		// Handle key presses based on current step
-		switch m.step {
-		case 0: // Import Saved settings prompt
+		// Save/Export step after finished
+		if m.finished && m.err == nil {
 			switch msg.String() {
-			case "left", "right", "tab", "h", "l", "up", "down", "j", "k":
+			case "up", "down", "tab", "j", "k":
+				m.exportPrompt = !m.exportPrompt
+			case "enter":
+				m.exportDone = true
+				if m.exportPrompt {
+					// Re-run apply with export settings true (just saves file instantly)
+					_ = config.SaveConfig(m.cfg)
+				}
+				return m, tea.Quit
+			}
+			return m, nil
+		}
+
+		// Regular Wizard steps navigation
+		switch m.step {
+		case 0: // Saved settings import
+			switch msg.String() {
+			case "up", "down", "j", "k", "tab":
 				m.importPrompt = !m.importPrompt
 			case "enter":
 				if m.importPrompt {
 					m.cfg = config.LoadConfig()
-					m.ohMyZshChoice = m.cfg.InstallOhMyZsh
-					m.configureGit = m.cfg.ConfigureGit
-					m.applyTheme = m.cfg.ApplyTheme
-					m.enableDocker = m.cfg.EnableDocker
-					m.enableZshDefault = m.cfg.EnableZshDefault
-					m.gitNameInput.SetValue(m.cfg.GitName)
-					m.gitEmailInput.SetValue(m.cfg.GitEmail)
-					if m.cfg.ThemeMode == "2" {
-						m.themeModeCursor = 1
-					} else {
-						m.themeModeCursor = 0
-					}
-					m.availableThemes = getSystemThemes(m.cfg.ThemeMode)
-					// resolve background selection
-					if m.cfg.BackgroundImage != "" {
-						if strings.Contains(m.cfg.BackgroundImage, "wallpapers/") {
-							m.bgChoiceCursor = 1
-							m.wallpaperCursor = 0
-							wpFilename := filepath.Base(m.cfg.BackgroundImage)
-							for idx, wp := range m.repoWallpapers {
-								if wp == wpFilename {
-									m.wallpaperCursor = idx
-									break
-								}
-							}
-						} else if !strings.Contains(m.cfg.BackgroundImage, "Background.jpeg") {
-							m.bgChoiceCursor = 2
-							m.customBgInput.SetValue(m.cfg.BackgroundImage)
-						} else {
-							m.bgChoiceCursor = 0
-						}
-					}
 					m.importedSettings = true
-					m.step = 4 // Skip straight to background selection!
+					// Prepopulate state from imported config
+					m.ohMyZshChoice = m.cfg.Zsh.InstallOhMyZsh
+					m.configureGit = m.cfg.Git.ConfigureGit
+					m.applyTheme = m.cfg.Theme.ApplyTheme
+					m.applyFonts = m.cfg.Fonts.ConfigureFonts
+					m.applyBg = m.cfg.Wallpaper.ApplyBackground
+					m.enableDocker = m.cfg.Docker.EnableDocker
+					m.enableZshDefault = m.cfg.Shell.EnableZshDefault
+					m.pinDiscord = m.cfg.Dock.PinDiscord
+					m.configureKeyboard = m.cfg.Keyboard.ConfigureKeyboard
+					m.addArabic = m.cfg.Keyboard.AddArabic
+					m.configurePower = m.cfg.Power.ConfigurePower
+					m.gitNameInput.SetValue(m.cfg.Git.GitName)
+					m.gitEmailInput.SetValue(m.cfg.Git.GitEmail)
+					if m.cfg.Wallpaper.BackgroundImage != "" {
+						m.customBgInput.SetValue(m.cfg.Wallpaper.BackgroundImage)
+					}
+					// Instantly jump to final summary checklist screen
+					m.step = 7
 				} else {
-					m.cfg = config.DefaultConfig()
-					m.importedSettings = false
 					m.step = 1
 				}
 			}
 
-		case 1: // Oh-My-Zsh Choice
+		case 1: // Oh-My-Zsh choice
 			switch msg.String() {
 			case "backspace":
 				if m.hasSavedSettings {
 					m.step = 0
 				}
-			case "left", "right", "tab", "h", "l", "up", "down", "j", "k":
+			case "up", "down", "j", "k", "tab":
 				m.ohMyZshChoice = !m.ohMyZshChoice
 			case "enter":
+				m.cfg.Zsh.InstallOhMyZsh = m.ohMyZshChoice
 				m.step = 2
 			}
 
-		case 2: // Git Config Setup
+		case 2: // Git credentials
 			if !m.configureGit {
 				switch msg.String() {
 				case "backspace":
 					m.step = 1
-				case "left", "right", "tab", "h", "l", "up", "down", "j", "k":
+				case "up", "down", "j", "k", "tab":
 					m.configureGit = !m.configureGit
 				case "enter":
+					m.cfg.Git.ConfigureGit = false
 					m.step = 3
 				}
 			} else {
-				// Text input focus and typing
+				// Form inputs are active
 				var cmd tea.Cmd
 				if m.focusedInput == 0 {
-					switch msg.String() {
-					case "down", "tab":
-						m.focusedInput = 1
-						m.gitNameInput.Blur()
-						m.gitEmailInput.Focus()
-					case "enter":
-						m.focusedInput = 1
-						m.gitNameInput.Blur()
-						m.gitEmailInput.Focus()
-					default:
-						m.gitNameInput, cmd = m.gitNameInput.Update(msg)
-					}
-				} else if m.focusedInput == 1 {
-					switch msg.String() {
-					case "up", "tab":
+					m.gitNameInput.Focus()
+					m.gitEmailInput.Blur()
+				} else {
+					m.gitNameInput.Blur()
+					m.gitEmailInput.Focus()
+				}
+
+				switch msg.String() {
+				case "backspace":
+					if m.gitNameInput.Focused() && m.gitNameInput.Value() == "" {
+						m.configureGit = false
+					} else if m.gitEmailInput.Focused() && m.gitEmailInput.Value() == "" {
 						m.focusedInput = 0
-						m.gitEmailInput.Blur()
-						m.gitNameInput.Focus()
-					case "enter":
-						// save credentials and move next
-						m.cfg.GitName = m.gitNameInput.Value()
-						m.cfg.GitEmail = m.gitEmailInput.Value()
+					} else {
+						if m.focusedInput == 0 {
+							m.gitNameInput, cmd = m.gitNameInput.Update(msg)
+						} else {
+							m.gitEmailInput, cmd = m.gitEmailInput.Update(msg)
+						}
+					}
+				case "up", "k":
+					m.focusedInput = 0
+				case "down", "j", "tab":
+					if m.focusedInput == 0 {
+						m.focusedInput = 1
+					} else {
+						m.focusedInput = 0
+					}
+				case "enter":
+					if m.focusedInput == 0 {
+						m.focusedInput = 1
+					} else {
+						m.cfg.Git.ConfigureGit = true
+						m.cfg.Git.GitName = m.gitNameInput.Value()
+						m.cfg.Git.GitEmail = m.gitEmailInput.Value()
 						m.step = 3
-					default:
+					}
+				default:
+					if m.focusedInput == 0 {
+						m.gitNameInput, cmd = m.gitNameInput.Update(msg)
+					} else {
 						m.gitEmailInput, cmd = m.gitEmailInput.Update(msg)
 					}
 				}
 				return m, cmd
 			}
 
-		case 3: // Themes Setup
+		case 3: // Themes choice
 			if !m.applyTheme {
 				switch msg.String() {
 				case "backspace":
 					m.step = 2
-				case "left", "right", "tab", "h", "l", "up", "down", "j", "k":
+				case "up", "down", "j", "k", "tab":
 					m.applyTheme = !m.applyTheme
 				case "enter":
+					m.cfg.Theme.ApplyTheme = false
 					m.step = 4
 				}
 			} else {
+				// Theme settings active
 				switch msg.String() {
 				case "backspace":
-					m.step = 2
-				case "left", "right", "tab", "h", "l":
+					m.applyTheme = false
+				case "left", "right", "h", "l":
 					m.themeModeCursor = 1 - m.themeModeCursor
 					modeStr := "1"
 					if m.themeModeCursor == 1 {
@@ -443,36 +398,66 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.themeCursor++
 					}
 				case "enter":
-					if len(m.availableThemes) > 0 {
-						m.cfg.ThemeName = m.availableThemes[m.themeCursor]
+					m.cfg.Theme.ApplyTheme = true
+					if m.themeModeCursor == 0 {
+						m.cfg.Theme.ThemeMode = "1"
 					} else {
-						m.cfg.ThemeName = "Yaru-dark"
+						m.cfg.Theme.ThemeMode = "2"
 					}
-					if m.themeModeCursor == 1 {
-						m.cfg.ThemeMode = "2"
-					} else {
-						m.cfg.ThemeMode = "1"
+					if len(m.availableThemes) > 0 {
+						m.cfg.Theme.ThemeName = m.availableThemes[m.themeCursor]
 					}
 					m.step = 4
 				}
 			}
 
-		case 4: // Background Setup
+		case 4: // Font Selection Setup
+			if !m.applyFonts {
+				switch msg.String() {
+				case "backspace":
+					m.step = 3
+				case "up", "down", "j", "k", "tab":
+					m.applyFonts = !m.applyFonts
+				case "enter":
+					m.cfg.Fonts.ConfigureFonts = false
+					m.step = 5
+				}
+			} else {
+				switch msg.String() {
+				case "backspace":
+					m.step = 3
+				case "up", "k":
+					if m.fontCursor > 0 {
+						m.fontCursor--
+					}
+				case "down", "j":
+					if m.fontCursor < len(m.availableFonts)-1 {
+						m.fontCursor++
+					}
+				case "enter":
+					if len(m.availableFonts) > 0 {
+						m.cfg.Fonts.FontName = m.availableFonts[m.fontCursor]
+					} else {
+						m.cfg.Fonts.FontName = "MesloLGS NF"
+					}
+					m.cfg.Fonts.ConfigureFonts = true
+					m.step = 5
+				}
+			}
+
+		case 5: // Background Setup
 			if !m.applyBg {
 				switch msg.String() {
 				case "backspace":
-					if m.importedSettings {
-						m.step = 0
-					} else {
-						m.step = 3
-					}
+					m.step = 4
 				case "left", "right", "tab", "h", "l", "up", "down", "j", "k":
 					m.applyBg = !m.applyBg
 				case "enter":
+					m.cfg.Wallpaper.ApplyBackground = false
 					if m.importedSettings {
-						m.step = 6
+						m.step = 7
 					} else {
-						m.step = 5
+						m.step = 6
 					}
 				}
 			} else {
@@ -482,11 +467,12 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					var cmd tea.Cmd
 					m.customBgInput.Focus()
 					if msg.String() == "enter" {
-						m.cfg.BackgroundImage = m.customBgInput.Value()
+						m.cfg.Wallpaper.BackgroundImage = m.customBgInput.Value()
+						m.cfg.Wallpaper.ApplyBackground = true
 						if m.importedSettings {
-							m.step = 6
+							m.step = 7
 						} else {
-							m.step = 5
+							m.step = 6
 						}
 					} else if msg.String() == "up" {
 						m.bgChoiceCursor = 1
@@ -498,11 +484,7 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				} else {
 					switch msg.String() {
 					case "backspace":
-						if m.importedSettings {
-							m.step = 0
-						} else {
-							m.step = 3
-						}
+						m.step = 4
 					case "up", "k":
 						if m.bgChoiceCursor > 0 {
 							m.bgChoiceCursor--
@@ -520,59 +502,81 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							m.wallpaperCursor++
 						}
 					case "enter":
-						homeDir, _ := os.UserHomeDir()
 						if m.bgChoiceCursor == 0 {
-							m.cfg.BackgroundImage = filepath.Join(homeDir, "ZoneRestore", "wallpapers", "Background.jpeg")
+							m.cfg.Wallpaper.BackgroundImage = "Background.jpeg"
 						} else if m.bgChoiceCursor == 1 {
-							selectedWP := m.repoWallpapers[m.wallpaperCursor]
-							m.cfg.BackgroundImage = filepath.Join(homeDir, "ZoneRestore", "wallpapers", selectedWP)
+							m.cfg.Wallpaper.BackgroundImage = m.repoWallpapers[m.wallpaperCursor]
 						}
+						m.cfg.Wallpaper.ApplyBackground = true
 						if m.importedSettings {
-							m.step = 6
+							m.step = 7
 						} else {
-							m.step = 5
+							m.step = 6
 						}
 					}
 				}
 			}
 
-		case 5: // Docker and Zsh default selectors
-			// We have two toggle switches: active switch cursor (focusedInput 0 or 1)
+		case 6: // Modular checklists (Docker, Zsh default, Keyboard, Dock Favorites, Arabic, Power)
 			switch msg.String() {
 			case "backspace":
-				m.step = 4
-			case "up", "down", "tab":
-				m.focusedInput = 1 - m.focusedInput
-			case "left", "right", "h", "l", " ":
-				if m.focusedInput == 0 {
-					m.enableDocker = !m.enableDocker
+				m.step = 5
+			case "up", "k":
+				if m.focusedInput > 0 {
+					m.focusedInput--
 				} else {
+					m.focusedInput = 5
+				}
+			case "down", "j", "tab":
+				if m.focusedInput < 5 {
+					m.focusedInput++
+				} else {
+					m.focusedInput = 0
+				}
+			case "left", "right", "h", "l", " ":
+				switch m.focusedInput {
+				case 0:
+					m.enableDocker = !m.enableDocker
+				case 1:
 					m.enableZshDefault = !m.enableZshDefault
+				case 2:
+					m.pinDiscord = !m.pinDiscord
+				case 3:
+					m.configureKeyboard = !m.configureKeyboard
+				case 4:
+					m.addArabic = !m.addArabic
+				case 5:
+					m.configurePower = !m.configurePower
 				}
 			case "enter":
-				m.cfg.InstallOhMyZsh = m.ohMyZshChoice
-				m.cfg.ConfigureGit = m.configureGit
-				m.cfg.ApplyTheme = m.applyTheme
-				m.cfg.ApplyBackground = m.applyBg
-				m.cfg.EnableDocker = m.enableDocker
-				m.cfg.EnableZshDefault = m.enableZshDefault
-				m.step = 6
+				m.cfg.Zsh.InstallOhMyZsh = m.ohMyZshChoice
+				m.cfg.Git.ConfigureGit = m.configureGit
+				m.cfg.Theme.ApplyTheme = m.applyTheme
+				m.cfg.Fonts.ConfigureFonts = m.applyFonts
+				m.cfg.Wallpaper.ApplyBackground = m.applyBg
+				m.cfg.Docker.EnableDocker = m.enableDocker
+				m.cfg.Shell.EnableZshDefault = m.enableZshDefault
+				m.cfg.Dock.PinDiscord = m.pinDiscord
+				m.cfg.Keyboard.ConfigureKeyboard = m.configureKeyboard
+				m.cfg.Keyboard.AddArabic = m.addArabic
+				m.cfg.Power.ConfigurePower = m.configurePower
+				m.step = 7
 			}
 
-		case 6: // Final Summary & Apply
+		case 7: // Final Summary & Apply
 			switch msg.String() {
 			case "backspace":
 				if m.importedSettings {
-					m.step = 4
-				} else {
 					m.step = 5
+				} else {
+					m.step = 6
 				}
 			case "enter":
 				m.applying = true
-				m.step = 7
+				m.step = 8
 				// Launch native Go ApplyConfig in a concurrent goroutine!
-				// We pass 'false' for exportSettings since we explicitly prompt and export *after* success in Step 7.
 				return m, tea.Batch(
+					m.spinner.Tick,
 					executeApplyConfig(m.cfg, false, m.logChan),
 					waitForActivity(m.logChan),
 				)
@@ -591,326 +595,4 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, nil
-}
-
-func (m tuiModel) View() string {
-	var s strings.Builder
-	s.WriteString(titleStyle.Render("   CONFIG MAKER - TERMINAL UI WIZARD   ") + "\n\n")
-
-	var stepContent string
-
-	switch m.step {
-	case 0: // Import Settings Prompt
-		stepContent = fmt.Sprintf(
-			" Loaded existing configurations in ~/.config/zonerestore/config.json.\n\n"+
-				" %sWould you like to import your saved settings?%s\n\n"+
-				"   %s\n   %s",
-			utils.Yellow, utils.Reset,
-			renderToggleOption("Yes (Import Settings)", m.importPrompt),
-			renderToggleOption("No (Pristine Defaults)", !m.importPrompt),
-		)
-
-	case 1: // Oh-My-Zsh Setup
-		stepContent = fmt.Sprintf(
-			" [Step 1/6] Oh-My-Zsh Installation\n\n"+
-				" %sWould you like to install Oh-My-Zsh unattended?%s\n\n"+
-				"   %s\n   %s",
-			utils.Yellow, utils.Reset,
-			renderToggleOption("Yes, install Oh-My-Zsh", m.ohMyZshChoice),
-			renderToggleOption("No, skip", !m.ohMyZshChoice),
-		)
-
-	case 2: // Git Setup
-		if !m.configureGit {
-			stepContent = fmt.Sprintf(
-				" [Step 2/6] Git global setup\n\n"+
-					" %sWould you like to configure Git name & email?%s\n\n"+
-					"   %s\n   %s",
-				utils.Yellow, utils.Reset,
-				renderToggleOption("Yes, configure Git", m.configureGit),
-				renderToggleOption("No, skip Git setup", !m.configureGit),
-			)
-		} else {
-			stepContent = fmt.Sprintf(
-				" [Step 2/6] Enter Git credentials\n\n"+
-					"   %s Name  %s\n"+
-					"   %s\n\n"+
-					"   %s Email %s\n"+
-					"   %s\n\n"+
-					"   %s",
-				renderActiveLabel("Full Name", m.focusedInput == 0), utils.Reset,
-				m.gitNameInput.View(),
-				renderActiveLabel("Email Address", m.focusedInput == 1), utils.Reset,
-				m.gitEmailInput.View(),
-				helpStyle.Render("Press Down/Tab to switch fields, and Enter to complete."),
-			)
-		}
-
-	case 3: // Themes Setup
-		if !m.applyTheme {
-			stepContent = fmt.Sprintf(
-				" [Step 3/6] Gnome visual theme\n\n"+
-					" %sWould you like to customize Gnome windows/interface theme?%s\n\n"+
-					"   %s\n   %s",
-				utils.Yellow, utils.Reset,
-				renderToggleOption("Yes, apply Gnome themes", m.applyTheme),
-				renderToggleOption("No, skip themes", !m.applyTheme),
-			)
-		} else {
-			// Mode selection and theme listing
-			modeView := renderHorizontalOptions([]string{"Dark Mode", "Light Mode"}, m.themeModeCursor)
-
-			var themesView strings.Builder
-			themesView.WriteString(fmt.Sprintf("   Select System Theme:\n"))
-			if len(m.availableThemes) == 0 {
-				themesView.WriteString(fmt.Sprintf("     %sNo themes found on system.%s\n", utils.Red, utils.Reset))
-			} else {
-				start := m.themeCursor - 2
-				if start < 0 {
-					start = 0
-				}
-				end := start + 5
-				if end > len(m.availableThemes) {
-					end = len(m.availableThemes)
-				}
-				for i := start; i < end; i++ {
-					if i == m.themeCursor {
-						themesView.WriteString(fmt.Sprintf("     %s▶ %s%s\n", utils.Cyan, m.availableThemes[i], utils.Reset))
-					} else {
-						themesView.WriteString(fmt.Sprintf("       %s\n", m.availableThemes[i]))
-					}
-				}
-			}
-
-			stepContent = fmt.Sprintf(
-				" [Step 3/6] Select Gnome style\n\n"+
-					"   Select Mode: %s\n\n"+
-					"%s\n"+
-					"   %s",
-				modeView,
-				themesView.String(),
-				helpStyle.Render("Press Left/Right for mode, Up/Down for themes, Enter to save."),
-			)
-		}
-
-	case 4: // Background Setup
-		if !m.applyBg {
-			stepContent = fmt.Sprintf(
-				" [Step 4/6] Desktop Wallpaper\n\n"+
-					" %sWould you like to set custom desktop backgrounds?%s\n\n"+
-					"   %s\n   %s",
-				utils.Yellow, utils.Reset,
-				renderToggleOption("Yes, apply desktop wallpaper", m.applyBg),
-				renderToggleOption("No, skip wallpaper", !m.applyBg),
-			)
-		} else {
-			// Render wallpaper option selections
-			var list string
-			list += renderOptionRow("[1] Predefined Background.jpeg", m.bgChoiceCursor == 0) + "\n"
-
-			// Choice 2: wallpapers scrollable list inline
-			wpSelector := ""
-			if m.bgChoiceCursor == 1 {
-				wpSelector = "  ◀ " + m.repoWallpapers[m.wallpaperCursor] + " ▶"
-			}
-			list += renderOptionRow("[2] Choice from repository wallpapers"+wpSelector, m.bgChoiceCursor == 1) + "\n"
-
-			list += renderOptionRow("[3] Custom absolute image path", m.bgChoiceCursor == 2) + "\n"
-
-			var pathInputView string
-			if m.bgChoiceCursor == 2 {
-				pathInputView = fmt.Sprintf("\n   Enter Path: %s\n", m.customBgInput.View())
-			}
-
-			stepContent = fmt.Sprintf(
-				" [Step 4/6] Wallpaper choice\n\n"+
-					"%s"+
-					"%s\n"+
-					"   %s",
-				list,
-				pathInputView,
-				helpStyle.Render("Press Up/Down to choose option, Left/Right to scroll wallpapers, Enter to select."),
-			)
-		}
-
-	case 5: // Docker and Zsh defaults
-		stepContent = fmt.Sprintf(
-			" [Step 5/6] Environments & defaults\n\n"+
-				"   %s Enable Docker Rootless?%s\n"+
-				"     %s\n\n"+
-				"   %s Set Zsh as Default Shell?%s\n"+
-				"     %s\n\n"+
-				"   %s",
-			renderActiveLabel("[Option A]", m.focusedInput == 0), utils.Reset,
-			renderHorizontalOptions([]string{"Yes", "No"}, getYesNoIndex(!m.enableDocker)),
-			renderActiveLabel("[Option B]", m.focusedInput == 1), utils.Reset,
-			renderHorizontalOptions([]string{"Yes", "No"}, getYesNoIndex(!m.enableZshDefault)),
-			helpStyle.Render("Press Up/Down/Tab to switch, Left/Right/Space to toggle, Enter to confirm."),
-		)
-
-	case 6: // Final Summary Checklist & Save
-		var summary strings.Builder
-		summary.WriteString(fmt.Sprintf(" %sReview Selections:%s\n\n", utils.Yellow, utils.Reset))
-		summary.WriteString(renderSummaryRow("Install Oh-My-Zsh", m.ohMyZshChoice) + "\n")
-		summary.WriteString(renderSummaryRow("Configure Git", m.configureGit) + "\n")
-		if m.configureGit {
-			summary.WriteString(fmt.Sprintf("   └─ Name:  %s\n", m.gitNameInput.Value()))
-			summary.WriteString(fmt.Sprintf("   └─ Email: %s\n", m.gitEmailInput.Value()))
-		}
-		summary.WriteString(renderSummaryRow("Apply theme", m.applyTheme) + "\n")
-		if m.applyTheme {
-			mode := "Dark"
-			if m.themeModeCursor == 1 {
-				mode = "Light"
-			}
-			theme := "Yaru-dark"
-			if len(m.availableThemes) > 0 {
-				theme = m.availableThemes[m.themeCursor]
-			}
-			summary.WriteString(fmt.Sprintf("   └─ %s (%s)\n", theme, mode))
-		}
-		summary.WriteString(renderSummaryRow("Apply Background", m.applyBg) + "\n")
-		summary.WriteString(renderSummaryRow("Install Docker Rootless", m.enableDocker) + "\n")
-		summary.WriteString(renderSummaryRow("Set Zsh Default Shell", m.enableZshDefault) + "\n\n")
-
-		summary.WriteString(helpStyle.Render("Press Enter to execute the configuration updates, or Esc to quit."))
-		stepContent = summary.String()
-
-	case 7: // Live Execution Console
-		var logs strings.Builder
-		logs.WriteString(fmt.Sprintf(" %sExecution Console:%s\n\n", utils.Yellow, utils.Reset))
-
-		if len(m.logLines) == 0 {
-			logs.WriteString("   Initialising setup environment...\n")
-		} else {
-			start := len(m.logLines) - 10
-			if start < 0 {
-				start = 0
-			}
-			for i := start; i < len(m.logLines); i++ {
-				logs.WriteString("   " + m.logLines[i] + "\n")
-			}
-		}
-
-		logs.WriteString("\n")
-
-		if !m.finished {
-			logs.WriteString(fmt.Sprintf("   %s● Applying configuration selections live... Please wait.%s\n", utils.Cyan, utils.Reset))
-		} else {
-			if m.err != nil {
-				logs.WriteString(fmt.Sprintf("   %s✖ Failed: %v%s\n\n", utils.Red, m.err, utils.Reset))
-				logs.WriteString("   Press [q] or [Esc] to exit.")
-			} else {
-				if !m.exportDone {
-					logs.WriteString(fmt.Sprintf("   %s✔ Finished successfully!%s\n\n", utils.Green, utils.Reset))
-					logs.WriteString(fmt.Sprintf("   %sWould you like to export/save these settings for future use?%s\n", utils.Yellow, utils.Reset))
-					logs.WriteString(fmt.Sprintf("     %s\n     %s\n\n",
-						renderToggleOption("Yes, save choices", m.exportPrompt),
-						renderToggleOption("No, do not save", !m.exportPrompt),
-					))
-					logs.WriteString("   " + helpStyle.Render("Use Arrows/Tab to switch, and Enter to select."))
-				} else {
-					logs.WriteString(fmt.Sprintf("   %s✔ Finished successfully!%s\n\n", utils.Green, utils.Reset))
-					if m.exportPrompt {
-						logs.WriteString(fmt.Sprintf("   %s★ Settings exported successfully to ~/.config/zonerestore/config.json%s\n\n", utils.Green, utils.Reset))
-					} else {
-						logs.WriteString("   Settings were not saved.\n\n")
-					}
-					logs.WriteString("   Press [Enter] to reload and reopen GNOME Terminals now.")
-				}
-			}
-		}
-		stepContent = logs.String()
-	}
-
-	// If we are finished successfully in step 7 and press Enter, exit & reload Gnome terminal
-	if m.finished && m.err == nil && m.step == 7 {
-		// Finish behavior will trigger on tea.Quit, let's catch it in the caller or exit.
-		// Wait! Since we are in the View, we should return immediately on tea.Quit.
-	}
-
-	s.WriteString(boxStyle.Render(stepContent))
-	return s.String()
-}
-
-// Render UI element helpers
-func renderToggleOption(label string, active bool) string {
-	if active {
-		return fmt.Sprintf("%s● %s%s", utils.Cyan, label, utils.Reset)
-	}
-	return fmt.Sprintf("  %s", label)
-}
-
-func renderOptionRow(label string, active bool) string {
-	if active {
-		return fmt.Sprintf("  %s▶ %s%s", utils.Cyan, label, utils.Reset)
-	}
-	return fmt.Sprintf("    %s", label)
-}
-
-func renderHorizontalOptions(options []string, activeIndex int) string {
-	var sb strings.Builder
-	for i, opt := range options {
-		if i == activeIndex {
-			sb.WriteString(fmt.Sprintf("%s(•) %s%s   ", utils.Cyan, opt, utils.Reset))
-		} else {
-			sb.WriteString(fmt.Sprintf("( ) %s   ", opt))
-		}
-	}
-	return sb.String()
-}
-
-func renderSummaryRow(label string, enabled bool) string {
-	if enabled {
-		return fmt.Sprintf("   %s✔%s %s", utils.Green, utils.Reset, label)
-	}
-	return fmt.Sprintf("   %s✖%s %s", utils.Red, utils.Reset, label)
-}
-
-func getYesNoIndex(no bool) int {
-	if no {
-		return 1
-	}
-	return 0
-}
-
-func renderActiveLabel(label string, active bool) string {
-	if active {
-		return fmt.Sprintf("%s%s%s", utils.Cyan, label, utils.Reset)
-	}
-	return label
-}
-
-// getSystemThemes helper returns matching themes
-func getSystemThemes(mode string) []string {
-	var themes []string
-	entries, err := os.ReadDir("/usr/share/themes")
-	if err != nil {
-		return []string{"Yaru-dark"}
-	}
-
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			continue
-		}
-		name := entry.Name()
-		if mode == "1" && strings.Contains(strings.ToLower(name), "dark") {
-			themes = append(themes, name)
-		} else if mode == "2" && !strings.Contains(strings.ToLower(name), "dark") {
-			if name == "Default" || name == "raleigh" {
-				continue
-			}
-			themes = append(themes, name)
-		}
-	}
-	return themes
-}
-
-// getRepositoryWallpapers helper returns standard values
-func getRepositoryWallpapers() []string {
-	return []string{
-		"976013.jpg",
-		"Rin_Shima_Level_Up_Your_Web_Apps_With_Go.png",
-		"wallpaper-01.png",
-	}
 }

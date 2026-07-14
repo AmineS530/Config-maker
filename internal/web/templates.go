@@ -7,1533 +7,1276 @@ const IndexTemplate = `
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZoneRestore Dashboard</title>
+    <title>ZoneRestore — Configuration Wizard</title>
+    <meta name="description" content="ZoneRestore web configuration wizard for automated GNOME workstation setup.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="/js/alpine.min.js" defer></script>
     <style>
         :root {
-            --bg-color: #030303;      /* Dark obsidian background */
-            --card-bg: rgba(18, 18, 22, 0.7); /* Translucent premium card */
-            --border-color: rgba(255, 255, 255, 0.08); /* Minimal soft border */
-            --primary-accent: #6366f1; /* Indigo violet accent */
-            --secondary-accent: #3b82f6; /* Royal blue secondary */
-            --text-main: #f8fafc;     /* Bright off-white */
-            --text-muted: #94a3b8;    /* Muted cool gray */
-            --success-color: #10b981; /* Emerald green */
-            --error-color: #f43f5e;   /* Soft crimson red */
-            --warning-color: #f59e0b; /* Warm amber */
+            --bg:           #07090F;
+            --sidebar-bg:   #090C13;
+            --card-bg:      rgba(13, 18, 30, 0.85);
+            --border:       rgba(255,255,255,0.07);
+            --accent:       #00D4FF;
+            --accent-dim:   rgba(0,212,255,0.12);
+            --accent-glow:  rgba(0,212,255,0.3);
+            --purple:       #9B59B6;
+            --green:        #2ECC71;
+            --red:          #E74C3C;
+            --yellow:       #F39C12;
+            --text:         #EEF2F7;
+            --muted:        #7B8FA6;
+            --r-card:       14px;
+            --r-btn:        9px;
+            --transition:   0.22s cubic-bezier(.4,0,.2,1);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        /* Ambient Glow Blobs */
-        .glow-bg {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(160px);
-            opacity: 0.12;
-            z-index: 1;
-            pointer-events: none;
-            transition: all 1s ease;
-        }
-        .glow-1 {
-            width: 450px;
-            height: 450px;
-            background: radial-gradient(circle, var(--primary-accent), transparent 70%);
-            top: -120px;
-            left: -120px;
-        }
-        .glow-2 {
-            width: 450px;
-            height: 450px;
-            background: radial-gradient(circle, var(--secondary-accent), transparent 70%);
-            bottom: -120px;
-            right: -120px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 680px;
-            padding: 40px 24px;
-            z-index: 10;
-        }
-
-        /* Header Styling */
-        header {
-            text-align: center;
-            margin-bottom: 36px;
-        }
-        header h1 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 2.6rem;
-            font-weight: 800;
-            letter-spacing: -1.2px;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 70%, #3b82f6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        header p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            font-weight: 400;
-        }
-
-        /* Glassmorphism Card */
-        .glass-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 36px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-        }
-
-        /* Stepper Progress Bar */
-        .progress-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 32px;
-        }
-        .progress-bar-wrapper {
-            flex-grow: 1;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 3px;
-            margin: 0 16px;
-            overflow: hidden;
-            position: relative;
-        }
-        .progress-bar-fill {
+        html, body {
             height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent));
-            border-radius: 3px;
-            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .progress-step-text {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            min-width: 75px;
-        }
-
-        /* Fade-in transitions */
-        .step-content {
-            display: none;
-            animation: slideUpFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .step-content.active {
-            display: block;
-        }
-
-        @keyframes slideUpFade {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        h2 {
             font-family: 'Outfit', sans-serif;
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-bottom: 24px;
-            color: var(--text-main);
-            letter-spacing: -0.4px;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
         }
 
-        /* Form Controls */
-        .form-group {
-            margin-bottom: 24px;
+        /* ─── Ambient glows ─── */
+        .glow {
+            position: fixed; border-radius: 50%; filter: blur(130px);
+            opacity: .13; pointer-events: none; z-index: 0;
         }
-        .form-group label {
+        .glow-tl { width:560px; height:560px;
+            background: radial-gradient(circle, var(--accent), transparent 70%);
+            top:-140px; left:-140px; }
+        .glow-br { width:560px; height:560px;
+            background: radial-gradient(circle, var(--purple), transparent 70%);
+            bottom:-140px; right:-140px; }
+
+        /* ─── Root layout ─── */
+        .root {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ─── Sidebar ─── */
+        .sidebar {
+            width: 260px;
+            flex-shrink: 0;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 20px;
+            gap: 32px;
+            overflow-y: auto;
+        }
+
+        .brand {
+            display: flex; align-items: center; gap: 11px;
+        }
+        .brand-icon {
+            width: 34px; height: 34px;
+            background: linear-gradient(135deg, var(--accent), var(--purple));
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 1rem; color: var(--bg);
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px var(--accent-glow);
+        }
+        .brand-name {
+            font-size: 1.1rem; font-weight: 700;
+            background: linear-gradient(90deg, #fff 40%, var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .nav-steps { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+
+        .nav-step {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: var(--r-btn);
+            cursor: pointer;
+            font-size: .9rem; font-weight: 500;
+            color: var(--muted);
+            border: 1px solid transparent;
+            transition: all var(--transition);
+            user-select: none;
+        }
+        .nav-step:hover { background: rgba(255,255,255,.03); color: var(--text); }
+        .nav-step.is-active {
+            background: var(--accent-dim);
+            border-color: rgba(0,212,255,.22);
+            color: var(--accent);
+        }
+        .nav-step.is-done { color: var(--green); }
+        .nav-step.is-done:hover { background: rgba(46,204,113,.06); }
+
+        .step-num {
+            width: 22px; height: 22px; border-radius: 50%;
+            border: 1.5px solid currentColor;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .72rem; font-weight: 700; flex-shrink: 0;
+            transition: all var(--transition);
+        }
+        .nav-step.is-done .step-num {
+            background: var(--green); border-color: var(--green);
+            color: #07090F; font-size: .75rem;
+        }
+        .nav-step.is-active .step-num {
+            background: var(--accent); border-color: var(--accent);
+            color: var(--bg);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* ─── Main content ─── */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 32px 40px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ─── Glass card ─── */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--r-card);
+            padding: 36px 40px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0,0,0,.5);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ─── Step transitions ─── */
+        .step-panel {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            flex: 1;
+        }
+        .step-panel.active {
+            display: flex;
+            animation: fadeSlideIn var(--transition) both;
+        }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── Typography ─── */
+        .step-title {
+            font-size: 1.55rem; font-weight: 700;
+            letter-spacing: -.4px;
+            border-left: 3px solid var(--accent);
+            padding-left: 12px;
+            line-height: 1.2;
+        }
+        .step-sub {
+            color: var(--muted); font-size: .92rem; line-height: 1.55;
+            margin-top: -8px;
+        }
+
+        /* ─── Grid layout helpers ─── */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); gap: 14px; }
+
+        /* ─── Choose cards (Yes/No) ─── */
+        .choice-card {
+            background: rgba(255,255,255,.02);
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-card);
+            padding: 22px;
+            cursor: pointer;
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .choice-card:hover {
+            background: rgba(255,255,255,.04);
+            border-color: rgba(0,212,255,.2);
+            transform: translateY(-2px);
+        }
+        .choice-card.chosen {
+            background: rgba(0,212,255,.06);
+            border-color: var(--accent);
+            box-shadow: inset 0 0 0 1px rgba(0,212,255,.15), 0 0 20px rgba(0,212,255,.08);
+        }
+        .choice-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 6px; color: #fff; }
+        .choice-card p  { font-size: .84rem; color: var(--muted); line-height: 1.4; }
+        .chosen-badge {
+            position: absolute; top: 12px; right: 12px;
+            width: 20px; height: 20px; border-radius: 50%;
+            background: var(--accent); color: var(--bg);
+            font-size: .7rem; font-weight: 800;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* ─── Toggle row (single enable/disable) ─── */
+        .toggle-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 18px;
+            background: rgba(255,255,255,.02);
+            border: 1px solid var(--border);
+            border-radius: var(--r-btn);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .toggle-row:hover { background: rgba(255,255,255,.04); border-color: rgba(0,212,255,.2); }
+        .toggle-row h4 { font-size: .95rem; font-weight: 600; }
+        .toggle-badge {
+            font-size: .78rem; font-weight: 700; padding: 3px 10px;
+            border-radius: 20px; transition: all var(--transition);
+        }
+        .toggle-badge.on  { background: rgba(0,212,255,.15); color: var(--accent); }
+        .toggle-badge.off { background: rgba(255,255,255,.07); color: var(--muted); }
+
+        /* ─── Mode switcher (Dark/Light tabs) ─── */
+        .mode-switch {
+            display: inline-flex;
+            background: rgba(0,0,0,.35);
+            border: 1px solid var(--border);
+            border-radius: var(--r-btn);
+            padding: 4px;
+            gap: 2px;
+        }
+        .mode-opt {
+            padding: 7px 18px; border-radius: 6px;
+            font-size: .87rem; font-weight: 600; cursor: pointer;
+            color: var(--muted); transition: all var(--transition);
+        }
+        .mode-opt.active {
+            background: var(--accent); color: var(--bg);
+            box-shadow: 0 2px 10px var(--accent-glow);
+        }
+
+        /* ─── Scrollable list (themes) ─── */
+        .scroll-list {
+            max-height: 200px; overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--r-btn);
+            background: rgba(0,0,0,.25);
+            padding: 6px;
+            list-style: none;
+        }
+        .scroll-list-item {
+            padding: 9px 14px; border-radius: 6px;
+            font-size: .91rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: space-between;
+            transition: background var(--transition);
+        }
+        .scroll-list-item:hover { background: rgba(255,255,255,.04); }
+        .scroll-list-item.chosen { background: rgba(0,212,255,.08); color: var(--accent); font-weight: 600; }
+
+        /* ─── Font cards ─── */
+        .font-card {
+            background: rgba(255,255,255,.02);
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-card);
+            padding: 16px 18px;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .font-card:hover { background: rgba(255,255,255,.04); border-color: rgba(0,212,255,.2); transform: translateY(-1px); }
+        .font-card.chosen { background: rgba(0,212,255,.05); border-color: var(--accent); }
+        .font-card-name { font-size: .9rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+        .font-card-sample {
+            font-size: .8rem; color: var(--muted);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            padding-top: 6px; border-top: 1px dashed rgba(255,255,255,.06);
+            font-family: monospace;
+        }
+        .font-empty {
+            grid-column: 1/-1;
+            text-align: center; color: var(--muted);
+            font-size: .9rem; padding: 24px;
+        }
+
+        /* ─── Wallpaper gallery ─── */
+        .wp-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 4px 2px;
+        }
+        .wp-card {
+            border-radius: var(--r-card);
+            overflow: hidden;
+            aspect-ratio: 16/10;
+            cursor: pointer;
+            border: 2px solid transparent;
+            position: relative;
+            background: rgba(0,0,0,.6);
+            transition: all var(--transition);
+        }
+        .wp-card img {
+            width: 100%; height: 100%; object-fit: cover;
+            opacity: .72; transition: opacity var(--transition), transform .35s ease;
             display: block;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-            font-weight: 600;
-            letter-spacing: 0.2px;
+        }
+        .wp-card:hover img { opacity: .95; transform: scale(1.04); }
+        .wp-card.chosen { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 18px var(--accent-glow); }
+        .wp-card.chosen img { opacity: 1; }
+        .wp-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,.8));
+            padding: 6px 10px 8px;
+            font-size: .72rem; color: #fff; font-weight: 500;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .wp-check {
+            position: absolute; top: 8px; right: 8px;
+            width: 20px; height: 20px; border-radius: 50%;
+            background: var(--accent); color: var(--bg);
+            font-size: .65rem; font-weight: 900;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px var(--accent-glow);
+        }
+        .wp-loading {
+            grid-column: 1/-1; text-align: center;
+            color: var(--muted); font-size: .9rem; padding: 30px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+
+        /* ─── Form inputs ─── */
+        .form-label {
+            font-size: .8rem; font-weight: 700; color: var(--muted);
+            text-transform: uppercase; letter-spacing: .5px;
+            margin-bottom: 7px; display: block;
         }
         .text-input {
             width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            background: rgba(0,0,0,.35);
+            border: 1px solid var(--border);
+            border-radius: var(--r-btn);
             padding: 12px 16px;
-            color: var(--text-main);
-            font-family: inherit;
-            font-size: 0.95rem;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            color: #fff;
+            font-family: inherit; font-size: .93rem;
+            transition: all var(--transition);
         }
         .text-input:focus {
             outline: none;
-            border-color: var(--primary-accent);
-            background: rgba(0, 0, 0, 0.5);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            border-color: var(--accent);
+            background: rgba(0,0,0,.5);
+            box-shadow: 0 0 0 3px rgba(0,212,255,.12);
+        }
+        .input-row { display: flex; gap: 10px; }
+
+        /* ─── Summary list ─── */
+        .summary-list {
+            display: flex; flex-direction: column; gap: 8px;
+            max-height: 340px; overflow-y: auto;
+            background: rgba(0,0,0,.25);
+            border: 1px solid var(--border);
+            border-radius: var(--r-card);
+            padding: 14px;
+        }
+        .s-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 10px; border-radius: 7px;
+            font-size: .9rem;
+            background: rgba(255,255,255,.015);
+        }
+        .s-label { display: flex; align-items: center; gap: 10px; }
+        .s-badge {
+            font-size: .75rem; font-weight: 700;
+            padding: 2px 9px; border-radius: 12px;
+        }
+        .s-badge.on  { background: rgba(46,204,113,.15); color: var(--green); }
+        .s-badge.off { background: rgba(231,76,60,.12);  color: var(--red); }
+        .s-sub {
+            font-size: .82rem; color: var(--muted); padding: 4px 10px 4px 20px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
 
-        /* Toggle Switches */
-        .toggle-card {
-            background: rgba(255, 255, 255, 0.01);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
+        /* ─── Console ─── */
+        .console {
+            background: #040608; border: 1px solid var(--border);
+            border-radius: var(--r-card);
             padding: 18px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .82rem;
+            height: 260px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 4px;
+            box-shadow: inset 0 4px 24px rgba(0,0,0,.7);
         }
-        .toggle-card:hover {
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.03);
-            transform: translateY(-1px);
+        .c-line { line-height: 1.45; color: #9EB3CC; }
+        .c-info    { color: #7AA2F7; }
+        .c-success { color: var(--green); }
+        .c-error   { color: var(--red); }
+        .c-warn    { color: var(--yellow); }
+
+        .spinner-row {
+            display: flex; align-items: center; gap: 10px;
+            color: var(--accent); font-weight: 600; font-size: .9rem;
+            margin-top: 10px;
         }
-        .toggle-info {
-            max-width: 80%;
+        .pulse {
+            width: 9px; height: 9px; border-radius: 50%;
+            background: var(--accent);
+            animation: pulse-anim 1.2s ease-in-out infinite;
         }
-        .toggle-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-            margin-bottom: 3px;
-        }
-        .toggle-desc {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            line-height: 1.45;
-        }
-        
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 46px;
-            height: 26px;
-            flex-shrink: 0;
-        }
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: .25s cubic-bezier(0.16, 1, 0.3, 1);
-            border-radius: 26px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: #fff;
-            transition: .25s cubic-bezier(0.16, 1, 0.3, 1);
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        input:checked + .slider {
-            background-color: var(--primary-accent);
-            border-color: rgba(99, 102, 241, 0.2);
-        }
-        input:checked + .slider:before {
-            transform: translateX(20px);
+        @keyframes pulse-anim {
+            0%,100% { transform: scale(.8); opacity: .5; box-shadow: none; }
+            50%      { transform: scale(1.15); opacity: 1; box-shadow: 0 0 10px var(--accent-glow); }
         }
 
-        /* Choice Boxes for Grid Mode */
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 24px;
+        /* ─── Buttons ─── */
+        .btn { 
+            padding: 11px 22px; border-radius: var(--r-btn);
+            font-family: inherit; font-size: .92rem; font-weight: 600;
+            cursor: pointer; border: 1px solid transparent;
+            transition: all var(--transition);
         }
-        .choice-box {
-            background: rgba(255, 255, 255, 0.01);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        .btn-primary {
+            background: var(--accent); color: var(--bg);
+            box-shadow: 0 4px 14px rgba(0,212,255,.2);
         }
-        .choice-box:hover {
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.03);
-            transform: translateY(-2px);
+        .btn-primary:hover { background: #1DDDFF; box-shadow: 0 6px 20px rgba(0,212,255,.35); }
+        .btn-secondary {
+            background: rgba(255,255,255,.05);
+            color: var(--text); border-color: var(--border);
         }
-        .choice-box.selected {
-            background: rgba(99, 102, 241, 0.1);
-            border-color: var(--primary-accent);
-            box-shadow: 0 0 25px rgba(99, 102, 241, 0.15);
+        .btn-secondary:hover { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.15); }
+        .btn-danger {
+            background: rgba(231,76,60,.12); color: var(--red); border-color: rgba(231,76,60,.2);
         }
-        .choice-icon {
-            font-size: 1.6rem;
+        .btn-danger:hover { background: rgba(231,76,60,.2); }
+        .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+        /* ─── Nav actions row ─── */
+        .nav-actions {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 0 0;
+            border-top: 1px solid var(--border);
+            margin-top: auto;
+        }
+
+        /* ─── Bottom status bar ─── */
+        .status-bar {
+            height: 50px; flex-shrink: 0;
+            background: var(--sidebar-bg); border-top: 1px solid var(--border);
+            display: flex; align-items: center;
+            padding: 0 28px; gap: 10px; justify-content: space-between;
+            font-size: .8rem;
+        }
+        .pills { display: flex; gap: 8px; flex-wrap: wrap; }
+        .pill {
+            display: flex; align-items: center; gap: 6px;
+            padding: 3px 11px; border-radius: 20px;
+            border: 1px solid var(--border);
+            color: var(--muted); font-size: .78rem; font-weight: 500;
+            transition: all var(--transition);
+        }
+        .pill.on { border-color: rgba(0,212,255,.25); color: var(--accent); background: rgba(0,212,255,.04); }
+        .pill-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+        /* ─── Toast ─── */
+        .toast {
+            position: fixed; bottom: 70px; right: 24px;
+            background: rgba(13,18,30,.97); border: 1px solid var(--accent);
+            border-radius: var(--r-btn); padding: 12px 22px;
+            color: #fff; font-weight: 600; font-size: .9rem;
+            z-index: 9999; display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 8px 30px rgba(0,212,255,.25);
+            transform: translateY(30px); opacity: 0;
+            transition: all .3s cubic-bezier(.16,1,.3,1);
+            pointer-events: none;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* ─── Scrollbars ─── */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.09); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.18); }
+
+        /* ─── Divider ─── */
+        .divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+        /* ─── Section label ─── */
+        .sec-label {
+            font-size: .75rem; font-weight: 700;
+            color: var(--muted); text-transform: uppercase; letter-spacing: .6px;
             margin-bottom: 8px;
         }
-        .choice-title {
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
 
-        .select-input {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px 16px;
-            color: var(--text-main);
-            font-family: inherit;
-            font-size: 0.95rem;
-            cursor: pointer;
-            outline: none;
-            transition: all 0.2s ease;
-        }
-        .select-input:focus {
-            border-color: var(--primary-accent);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-        }
-
-        /* Summary Setup Overview */
-        .summary-list {
-            background: rgba(255, 255, 255, 0.01);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 24px;
-        }
-        .summary-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-        }
-        .summary-row:last-child {
-            border-bottom: none;
-        }
-        .summary-label {
-            font-weight: 500;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-        .summary-value {
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-        .indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-        }
-        .indicator.enabled {
-            background-color: var(--success-color);
-            box-shadow: 0 0 8px var(--success-color);
-        }
-        .indicator.disabled {
-            background-color: rgba(255,255,255,0.2);
-        }
-
-        /* Action Buttons */
-        .btn-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 32px;
-        }
-        .btn {
-            font-family: inherit;
-            font-size: 0.9rem;
-            font-weight: 600;
-            padding: 12px 26px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            border: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-        }
-        .btn-prev {
-            background: rgba(255, 255, 255, 0.03);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-        }
-        .btn-prev:hover {
-            background: rgba(255, 255, 255, 0.07);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
-        }
-        .btn-next {
-            background: linear-gradient(135deg, var(--primary-accent), var(--secondary-accent));
-            color: white;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
-        }
-        .btn-next:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
-            filter: brightness(1.1);
-        }
-        .btn-next:active {
-            transform: translateY(0);
-        }
-
-        /* Floating Toast Alert Box */
-        #toastNotification {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            z-index: 10000;
-            max-width: 380px;
-            padding: 16px 20px;
-            border-radius: 12px;
-            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
-            font-size: 0.9rem;
-            font-weight: 600;
-            display: none;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        @keyframes slideIn {
-            from { transform: translateX(120%) translateY(-10px); opacity: 0; }
-            to { transform: translateX(0) translateY(0); opacity: 1; }
-        }
-
-        /* macOS Console Style Terminal */
-        .console-card {
-            background: #09090b;
-            padding: 20px;
-            font-family: 'SFMono-Regular', Consolas, "Liberation Mono", Menlo, Courier, monospace;
-            height: 340px;
-            overflow-y: auto;
-            color: #e4e4e7;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.8);
-        }
-        .console-line {
-            margin-bottom: 6px;
-            white-space: pre-wrap;
-            line-height: 1.5;
-            font-size: 0.85rem;
-        }
-        .console-pulse-container {
-            display: flex;
-            align-items: center;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--primary-accent);
-            margin-right: 10px;
-            animation: pulse 1.2s infinite;
-            box-shadow: 0 0 6px var(--primary-accent);
-        }
-        @keyframes pulse {
-            0% { opacity: 0.3; }
-            50% { opacity: 1; }
-            100% { opacity: 0.3; }
-        }
-
-        /* Modal Overlays & Cards */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(3, 3, 3, 0.75);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .modal-card {
-            background: rgba(18, 18, 22, 0.8);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 40px;
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.05);
-            transform: scale(0.95);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-        }
-
-        /* Clean Finish View */
-        .finish-view {
-            display: none;
-            text-align: center;
-            padding: 24px 0;
-        }
-        .finish-view.active {
-            display: block;
-        }
-        .finish-icon {
-            font-size: 3.5rem;
-            margin-bottom: 16px;
-            filter: drop-shadow(0 0 10px rgba(99,102,241,0.3));
-        }
-
-        /* Custom Alias item card design */
-        .alias-item {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            transition: all 0.2s ease;
-        }
-        .alias-item:hover {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(255,255,255,0.15);
-        }
+        /* ─── img error fallback ─── */
+        img.broken { opacity: 0; }
     </style>
 </head>
-<body>
-    <!-- Ambient Blur Background Blobs -->
-    <div class="glow-bg glow-1"></div>
-    <div class="glow-bg glow-2"></div>
+<body x-data="wizard()" x-init="init()">
 
-    <!-- Floating Toast Notifications -->
-    <div id="toastNotification"></div>
+    <div class="glow glow-tl"></div>
+    <div class="glow glow-br"></div>
 
-    <div class="container">
-        <header>
-            <h1>ZoneRestore</h1>
-            <p>Desktop Configuration Wizard</p>
-            <div style="margin-top: 20px; display: flex; justify-content: center; gap: 16px;">
-                <button class="btn btn-prev" onclick="manualImport()" style="padding: 10px 22px; font-size: 0.85rem; border-radius: 10px; margin-top: 0; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.25); color: #a5b4fc;">📥 Import Settings</button>
-            </div>
-        </header>
+    <div class="root">
 
-        <div class="glass-card" id="wizardCard">
-            <!-- Progress Tracker -->
-            <div class="progress-container" id="progressBarContainer">
-                <span class="progress-step-text" id="progressStepNum">Step 1 of 6</span>
-                <div class="progress-bar-wrapper">
-                    <div class="progress-bar-fill" id="progressBarFill" style="width: 16.66%;"></div>
-                </div>
-                <span class="progress-step-text" id="progressPercent">16%</span>
+        <!-- ═══════ SIDEBAR ═══════ -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">ZR</div>
+                <div class="brand-name">ZoneRestore</div>
             </div>
 
-            <!-- Import Banner for skipping steps when settings are imported -->
-            <div id="importBanner" style="display: none; background: rgba(14, 165, 233, 0.08); border: 1px solid var(--primary-accent); border-radius: 16px; padding: 16px; margin-bottom: 24px; justify-content: space-between; align-items: center;">
-                <div style="text-align: left;">
-                    <div style="font-weight: 600; font-size: 0.95rem; color: var(--primary-accent);">Imported Saved Settings</div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">You can skip straight to desktop wallpaper selection or review your choices.</div>
-                </div>
-                <button class="btn btn-next" onclick="showStep(4)" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 10px; margin-top: 0; background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent)); box-shadow: none;">Go to Wallpaper ➔</button>
-            </div>
-
-            <!-- STEP 1: Oh My Zsh -->
-            <div class="step-content active" id="step1">
-                <h2>Zsh Shell & Extensions</h2>
-                <div class="toggle-card">
-                    <div class="toggle-info">
-                        <div class="toggle-title">Install Oh-My-Zsh</div>
-                        <div class="toggle-desc">Installs the popular community extension for Zsh to manage themes and plugins unattended.</div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="installZsh" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- STEP 2: Git Config -->
-            <div class="step-content" id="step2">
-                <h2>Git Credentials Setup</h2>
-                <div class="toggle-card" style="margin-bottom: 24px;">
-                    <div class="toggle-info">
-                        <div class="toggle-title">Enable Git Setup</div>
-                        <div class="toggle-desc">Configure global credential storage and user credentials.</div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="setupGit" checked onchange="toggleGitFields()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div id="gitFields">
-                    <div class="form-group">
-                        <label for="gitName">Full Name / Login</label>
-                        <input type="text" id="gitName" class="text-input" placeholder="e.g. 3elal">
-                    </div>
-                    <div class="form-group">
-                        <label for="gitEmail">Email Address</label>
-                        <input type="email" id="gitEmail" class="text-input" placeholder="e.g. 3elal@example.com">
-                    </div>
-                </div>
-            </div>
-
-            <!-- STEP 3: Themes -->
-            <div class="step-content" id="step3">
-                <h2>Gnome Interface Theme</h2>
-                <div class="toggle-card" style="margin-bottom: 24px;">
-                    <div class="toggle-info">
-                        <div class="toggle-title">Configure Theme</div>
-                        <div class="toggle-desc">Apply customized GTK and Window themes from your local system resources.</div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="setupTheme" checked onchange="toggleThemeFields()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div id="themeFields">
-                    <label style="display: block; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 500;">Select Mode</label>
-                    <div class="options-grid">
-                        <div class="choice-box selected" id="themeModeDark" onclick="selectThemeMode('1')">
-                            <div class="choice-icon">🌙</div>
-                            <div class="choice-title">Dark Mode</div>
+            <ul class="nav-steps">
+                <template x-for="(s, i) in steps" :key="i">
+                    <li class="nav-step"
+                        :class="{'is-active': step===i, 'is-done': step>i}"
+                        @click="goTo(i)">
+                        <div class="step-num">
+                            <span x-show="step <= i" x-text="i+1"></span>
+                            <span x-show="step > i">✓</span>
                         </div>
-                        <div class="choice-box" id="themeModeLight" onclick="selectThemeMode('2')">
-                            <div class="choice-icon">☀️</div>
-                            <div class="choice-title">Light Mode</div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="themeSelect">Select Target Theme</label>
-                        <select id="themeSelect" class="select-input">
-                            <!-- Populated dynamically via JS -->
-                        </select>
-                    </div>
-                </div>
-            </div>
+                        <span x-text="s"></span>
+                    </li>
+                </template>
+            </ul>
+        </aside>
 
-            <!-- STEP 4: Background -->
-            <div class="step-content" id="step4">
-                <h2>Desktop Wallpaper</h2>
-                <div class="toggle-card" style="margin-bottom: 24px;">
-                    <div class="toggle-info">
-                        <div class="toggle-title">Apply Custom Background</div>
-                        <div class="toggle-desc">Update user desktop backgrounds using selected wallpapers.</div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="setupBg" checked onchange="toggleBgFields()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div id="bgFields">
-                    <div class="form-group">
-                        <label for="bgSource">Select Background Option</label>
-                        <select id="bgSource" class="select-input" onchange="toggleBgInputs()">
-                            <option value="1">Predefined Background.jpeg</option>
-                            <option value="2">Select from repository wallpapers</option>
-                            <option value="3">Select custom image via GNOME</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="repoWallpapersWrapper" style="display: none;">
-                        <label for="repoWpSelect">Available Wallpaper</label>
-                        <select id="repoWpSelect" class="select-input" onchange="updateWallpaperPreview()">
-                            <!-- Populated from system values -->
-                        </select>
-                    </div>
-                    <div class="form-group" id="customPathWrapper" style="display: none;">
-                        <label>Custom Selected Image</label>
-                        <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
-                            <button type="button" class="btn" onclick="selectGnomeImage()" style="background: rgba(139, 92, 246, 0.2); border: 1px solid var(--secondary-accent); color: var(--text-light); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: background 0.2s;">
-                                📂 Choose Image...
-                            </button>
-                            <span id="selectedImagePath" style="font-size: 0.85rem; color: var(--text-muted); word-break: break-all;">No image selected</span>
-                        </div>
-                    </div>
-                    <div id="wallpaperPreviewWrapper" style="margin-top: 20px; display: none;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem; color: var(--text-muted);">Wallpaper Preview</label>
-                        <div class="preview-card" style="border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; overflow: hidden; background: rgba(255, 255, 255, 0.03); aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,0.4);">
-                            <img id="wallpaperPreviewImg" src="" style="width: 100%; height: 100%; object-fit: cover; display: none; transition: opacity 0.3s ease;">
-                            <div id="wallpaperPreviewPlaceholder" style="color: var(--text-muted); font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                                <span>🖼️</span>
-                                <span>No preview available</span>
+        <!-- ═══════ MAIN ═══════ -->
+        <div class="main">
+            <div class="content-area">
+                <div class="card">
+                    <div class="card-body">
+
+                        <!-- ── STEP 0 – Import ── -->
+                        <div id="step-0" class="step-panel" :class="{'active': step===0}">
+                            <div>
+                                <h1 class="step-title">Configuration Profile</h1>
+                                <p class="step-sub">Start from your saved settings or configure everything from scratch.</p>
+                            </div>
+                            <div class="grid-2">
+                                <div class="choice-card" :class="{'chosen': importSettings}" @click="importSettings=true">
+                                    <div class="chosen-badge" x-show="importSettings">✓</div>
+                                    <h3>Import saved profile</h3>
+                                    <p>Load previously configured preferences from config.json instantly.</p>
+                                </div>
+                                <div class="choice-card" :class="{'chosen': !importSettings}" @click="importSettings=false">
+                                    <div class="chosen-badge" x-show="!importSettings">✓</div>
+                                    <h3>Fresh defaults</h3>
+                                    <p>Reset and configure every setting from recommended defaults.</p>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <button class="btn btn-secondary" @click="loadDefault()">↺ Reset Defaults</button>
+                                <button class="btn btn-secondary" @click="importJSON()">📂 Import JSON...</button>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- STEP 5: Docker and Default Shell -->
-            <div class="step-content" id="step5">
-                <h2>Environments & Shells</h2>
-                <div class="toggle-card">
-                    <div class="toggle-info">
-                        <div class="toggle-title">Enable Docker Rootless</div>
-                        <div class="toggle-desc">Installs Docker inside user environment. Fully safe, requires no sudo.</div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="installDocker">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="toggle-card">
-                    <div class="toggle-info">
-                        <div class="toggle-title">Set Zsh as Default Shell</div>
-                        <div class="toggle-desc">Sets up .bashrc script commands to redirect bash to login Zsh shell automatically.</div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="defaultShellZsh" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="toggle-card">
-                    <div class="toggle-info">
-                        <div class="toggle-title">Configure Keyboard Layouts</div>
-                        <div class="toggle-desc">Applies US and French keyboard layouts in Gnome.</div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="configureKeyboard" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="toggle-card">
-                    <div class="toggle-info">
-                        <div class="toggle-title">Configure GNOME Power Settings</div>
-                        <div class="toggle-desc">Sets desktop logout/idle sleep timeout to 1.5 hours.</div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="configurePower" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="toggle-card">
-                    <div class="toggle-info">
-                        <div class="toggle-title">Install Custom Fonts</div>
-                        <div class="toggle-desc">Installs custom MPLUS/Meslo fonts and sets terminal default font.</div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="configureFonts" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
+                        <!-- ── STEP 1 – Oh-My-Zsh ── -->
+                        <div id="step-1" class="step-panel" :class="{'active': step===1}">
+                            <div>
+                                <h1 class="step-title">Zsh Environment</h1>
+                                <p class="step-sub">Install and configure Oh-My-Zsh shell framework unattended on your workspace.</p>
+                            </div>
+                            <div class="grid-2">
+                                <div class="choice-card" :class="{'chosen': cfg.zsh.install_oh_my_zsh}" @click="cfg.zsh.install_oh_my_zsh=true">
+                                    <div class="chosen-badge" x-show="cfg.zsh.install_oh_my_zsh">✓</div>
+                                    <h3>Install Oh-My-Zsh</h3>
+                                    <p>Runs the official unattended install script and configures plugins.</p>
+                                </div>
+                                <div class="choice-card" :class="{'chosen': !cfg.zsh.install_oh_my_zsh}" @click="cfg.zsh.install_oh_my_zsh=false">
+                                    <div class="chosen-badge" x-show="!cfg.zsh.install_oh_my_zsh">✓</div>
+                                    <h3>Skip shell setup</h3>
+                                    <p>Leave your existing shell configuration untouched.</p>
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- Alpine JS Shell customization wrapper -->
-                <div x-data="{
-                    customUsername: '',
-                    aliases: [],
-                    newAliasName: '',
-                    newAliasCommand: '',
-                    init() {
-                        document.addEventListener('load-aliases', (e) => {
-                            this.customUsername = e.detail.customUsername || '';
-                            this.aliases = e.detail.aliases || [];
-                        });
-                    },
-                    addAlias() {
-                        if (this.newAliasName.trim() && this.newAliasCommand.trim()) {
-                            this.aliases.push({
-                                name: this.newAliasName.trim(),
-                                command: this.newAliasCommand.trim(),
-                                enabled: true
-                            });
-                            this.newAliasName = '';
-                            this.newAliasCommand = '';
-                        }
-                    },
-                    removeAlias(index) {
-                        this.aliases.splice(index, 1);
-                    }
-                }" @get-aliases.window="$event.detail.callback({ customUsername: customUsername, aliases: aliases })" style="margin-top: 24px; padding-top: 24px; border-top: 1px dashed var(--border-color);">
-                    
-                    <!-- Custom Username for Prompt (PS1) -->
-                    <div class="form-group">
-                        <label for="customUsernameInput" style="font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">Prompt Display Name (PS1)</label>
-                        <input type="text" id="customUsernameInput" class="text-input" x-model="customUsername" placeholder="e.g. myname" style="width: 100%; max-width: 100%;">
-                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Leaves segment hidden if empty. Defaults to system username.</div>
-                    </div>
+                        <!-- ── STEP 2 – Git ── -->
+                        <div id="step-2" class="step-panel" :class="{'active': step===2}">
+                            <div>
+                                <h1 class="step-title">Git Global Credentials</h1>
+                                <p class="step-sub">Configure your identity for all repository interactions on this machine.</p>
+                            </div>
+                            <div class="grid-2" style="margin-bottom:4px;">
+                                <div class="choice-card" :class="{'chosen': cfg.git.configure_git}" @click="cfg.git.configure_git=true">
+                                    <div class="chosen-badge" x-show="cfg.git.configure_git">✓</div>
+                                    <h3>Configure Git globally</h3>
+                                    <p>Apply name and email to <code>~/.gitconfig</code>.</p>
+                                </div>
+                                <div class="choice-card" :class="{'chosen': !cfg.git.configure_git}" @click="cfg.git.configure_git=false">
+                                    <div class="chosen-badge" x-show="!cfg.git.configure_git">✓</div>
+                                    <h3>Skip Git setup</h3>
+                                    <p>Keep existing global git identity unchanged.</p>
+                                </div>
+                            </div>
+                            <div x-show="cfg.git.configure_git" x-transition style="display:flex;flex-direction:column;gap:14px;">
+                                <div class="grid-2">
+                                    <div>
+                                        <label class="form-label" for="git-name">Full name</label>
+                                        <input id="git-name" class="text-input" type="text" x-model="cfg.git.git_name" placeholder="e.g. John Doe">
+                                    </div>
+                                    <div>
+                                        <label class="form-label" for="git-email">Email address</label>
+                                        <input id="git-email" class="text-input" type="email" x-model="cfg.git.git_email" placeholder="e.g. john@example.com">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                    <!-- Zsh Aliases Section -->
-                    <div style="margin-top: 28px;">
-                        <label style="font-weight: 600; color: var(--text-main); display: block; margin-bottom: 12px;">Configure Zsh Aliases</label>
-                        
-                        <!-- Default & Custom Aliases List -->
-                        <div style="display: flex; flex-direction: column; gap: 12px;">
-                            <template x-for="(alias, index) in aliases" :key="index">
-                                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
-                                    <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                                        <label class="switch" style="flex-shrink: 0;">
-                                            <input type="checkbox" x-model="alias.enabled">
-                                            <span class="slider"></span>
-                                        </label>
-                                        <div style="word-break: break-all;">
-                                            <strong style="color: var(--primary-accent); font-family: monospace; font-size: 0.95rem;" x-text="alias.name"></strong>
-                                            <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;" x-text="'= ' + alias.command"></span>
+                        <!-- ── STEP 3 – Theme ── -->
+                        <div id="step-3" class="step-panel" :class="{'active': step===3}">
+                            <div>
+                                <h1 class="step-title">Gnome Desktop Theme</h1>
+                                <p class="step-sub">Customize the GTK window decorations and interface color scheme.</p>
+                            </div>
+                            <div class="toggle-row" @click="cfg.theme.apply_theme=!cfg.theme.apply_theme">
+                                <h4>Apply Gnome theme settings</h4>
+                                <span class="toggle-badge" :class="cfg.theme.apply_theme?'on':'off'" x-text="cfg.theme.apply_theme?'Enabled':'Disabled'"></span>
+                            </div>
+                            <div x-show="cfg.theme.apply_theme" x-transition style="display:flex;flex-direction:column;gap:14px;">
+                                <div>
+                                    <p class="sec-label">Color mode</p>
+                                    <div class="mode-switch">
+                                        <div class="mode-opt" :class="{'active': cfg.theme.theme_mode==='1'}" @click="switchThemeMode('1')">🌙 Dark</div>
+                                        <div class="mode-opt" :class="{'active': cfg.theme.theme_mode==='2'}" @click="switchThemeMode('2')">☀ Light</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="sec-label">Available system themes
+                                        <span x-show="themeList.length === 0" style="color:var(--red)"> — none found on system</span>
+                                    </p>
+                                    <ul class="scroll-list">
+                                        <template x-for="t in themeList" :key="t">
+                                            <li class="scroll-list-item" :class="{'chosen': cfg.theme.theme_name===t}" @click="cfg.theme.theme_name=t">
+                                                <span x-text="t"></span>
+                                                <span x-show="cfg.theme.theme_name===t">✓</span>
+                                            </li>
+                                        </template>
+                                        <li x-show="themeList.length===0" class="scroll-list-item" style="color:var(--muted);cursor:default;">No themes detected</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ── STEP 4 – Fonts ── -->
+                        <div id="step-4" class="step-panel" :class="{'active': step===4}">
+                            <div>
+                                <h1 class="step-title">Monospace Developer Fonts</h1>
+                                <p class="step-sub">Install and apply a custom coding font family from the ZoneRestoreThemes repository.</p>
+                            </div>
+                            <div class="toggle-row" @click="cfg.fonts.configure_fonts=!cfg.fonts.configure_fonts">
+                                <h4>Install fonts from themes repository</h4>
+                                <span class="toggle-badge" :class="cfg.fonts.configure_fonts?'on':'off'" x-text="cfg.fonts.configure_fonts?'Enabled':'Disabled'"></span>
+                            </div>
+                            <div x-show="cfg.fonts.configure_fonts" x-transition style="display:flex;flex-direction:column;gap:12px;">
+                                <p class="sec-label">Font families available
+                                    <span x-show="fonts.length === 0 && !fontsLoading" style="color:var(--yellow)"> — none found in themes/fonts/</span>
+                                </p>
+                                <div x-show="fontsLoading" style="color:var(--muted);font-size:.9rem;padding:16px 0;">Loading fonts from repository…</div>
+                                <div class="grid-auto" x-show="!fontsLoading">
+                                    <template x-if="fonts.length === 0">
+                                        <div class="font-empty">No font folders found in <code>themes/fonts/</code>. Add font subdirectories to the ZoneRestoreThemes repo.</div>
+                                    </template>
+                                    <template x-for="f in fonts" :key="f.name">
+                                        <div class="font-card" :class="{'chosen': cfg.fonts.font_name===f.name}" @click="cfg.fonts.font_name=f.name">
+                                            <div class="font-card-name" x-text="f.name"></div>
+                                            <div class="font-card-sample"
+                                                 :style="'font-family:' + JSON.stringify(f.name) + ',monospace'"
+                                                 x-text="f.name + ' — const x = 42;'"></div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ── STEP 5 – Wallpaper ── -->
+                        <div id="step-5" class="step-panel" :class="{'active': step===5}">
+                            <div>
+                                <h1 class="step-title">Desktop Wallpaper</h1>
+                                <p class="step-sub">Choose a background image loaded live from the ZoneRestoreThemes repository.</p>
+                            </div>
+                            <div class="toggle-row" @click="cfg.wallpaper.apply_background=!cfg.wallpaper.apply_background">
+                                <h4>Apply desktop wallpaper</h4>
+                                <span class="toggle-badge" :class="cfg.wallpaper.apply_background?'on':'off'" x-text="cfg.wallpaper.apply_background?'Enabled':'Disabled'"></span>
+                            </div>
+                            <div x-show="cfg.wallpaper.apply_background" x-transition style="display:flex;flex-direction:column;gap:12px;">
+                                <div class="mode-switch">
+                                    <div class="mode-opt" :class="{'active': wpSource==='repo'}" @click="wpSource='repo'">🖼 Repository gallery</div>
+                                    <div class="mode-opt" :class="{'active': wpSource==='custom'}" @click="wpSource='custom'">📁 Custom path</div>
+                                </div>
+
+                                <!-- Gallery view -->
+                                <div x-show="wpSource==='repo'" x-transition>
+                                    <p class="sec-label" x-text="'Wallpapers (' + wallpapers.length + ' found)'"></p>
+                                    <div x-show="wallpapers.length===0 && !wpLoading" style="color:var(--muted);font-size:.88rem;padding:8px 0;">No wallpapers found in <code>themes/wallpapers/</code>.</div>
+                                    <div x-show="wpLoading" class="wp-loading"><div class="pulse"></div> Loading wallpapers…</div>
+                                    <div class="wp-gallery" x-show="!wpLoading">
+                                        <template x-for="wp in wallpapers" :key="wp">
+                                            <div class="wp-card" :class="{'chosen': cfg.wallpaper.background_image===wp}" @click="cfg.wallpaper.background_image=wp">
+                                                <img :src="'/api/wallpaper/preview?name=' + encodeURIComponent(wp)"
+                                                     :alt="wp"
+                                                     loading="lazy"
+                                                     @error="$el.style.display='none'">
+                                                <div class="wp-overlay" x-text="wp"></div>
+                                                <div class="wp-check" x-show="cfg.wallpaper.background_image===wp">✓</div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Custom path view -->
+                                <div x-show="wpSource==='custom'" x-transition>
+                                    <label class="form-label" for="custom-wp">Absolute image file path</label>
+                                    <div class="input-row">
+                                        <input id="custom-wp" class="text-input" type="text" x-model="cfg.wallpaper.background_image"
+                                               placeholder="/home/user/Pictures/wallpaper.jpg">
+                                        <button class="btn btn-secondary" @click="browseWallpaper()">Browse…</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ── STEP 6 – System defaults ── -->
+                        <div id="step-6" class="step-panel" :class="{'active': step===6}">
+                            <div>
+                                <h1 class="step-title">Environments &amp; Defaults</h1>
+                                <p class="step-sub">Enable rootless Docker and configure shell preferences.</p>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                <div class="toggle-row" @click="cfg.docker.enable_docker=!cfg.docker.enable_docker">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <span>🐳</span>
+                                        <div>
+                                            <h4>Docker Rootless Mode</h4>
+                                            <div style="font-size:.8rem;color:var(--muted);margin-top:2px;">Installs Docker Engine in non-root user mode via get.docker.com/rootless</div>
                                         </div>
                                     </div>
-                                    <button type="button" @click="removeAlias(index)" style="background: none; border: none; color: var(--error-color); cursor: pointer; font-size: 1rem; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.background='none'">
-                                        ❌
-                                    </button>
+                                    <span class="toggle-badge" :class="cfg.docker.enable_docker?'on':'off'" x-text="cfg.docker.enable_docker?'On':'Off'"></span>
                                 </div>
-                            </template>
+                                <div class="toggle-row" @click="cfg.shell.enable_zsh_default=!cfg.shell.enable_zsh_default">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <span>🐚</span>
+                                        <div>
+                                            <h4>Default shell → Zsh</h4>
+                                            <div style="font-size:.8rem;color:var(--muted);margin-top:2px;">Adds Zsh launch commands to <code>~/.bashrc</code></div>
+                                        </div>
+                                    </div>
+                                    <span class="toggle-badge" :class="cfg.shell.enable_zsh_default?'on':'off'" x-text="cfg.shell.enable_zsh_default?'On':'Off'"></span>
+                                </div>
+                                <div class="toggle-row" @click="cfg.dock.pin_discord=!cfg.dock.pin_discord">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <span>⚓</span>
+                                        <div>
+                                            <h4>Pin Discord to favorites in Dock</h4>
+                                            <div style="font-size:.8rem;color:var(--muted);margin-top:2px;">Pins Discord launcher into GNOME favorites apps dock panel</div>
+                                        </div>
+                                    </div>
+                                    <span class="toggle-badge" :class="cfg.dock.pin_discord?'on':'off'" x-text="cfg.dock.pin_discord?'On':'Off'"></span>
+                                </div>
+                                <div class="toggle-row" @click="cfg.keyboard.configure_keyboard=!cfg.keyboard.configure_keyboard">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <span>⌨️</span>
+                                        <div>
+                                            <h4>US + FR keyboard layouts</h4>
+                                            <div style="font-size:.8rem;color:var(--muted);margin-top:2px;">Applies layout configuration to system input sources</div>
+                                        </div>
+                                    </div>
+                                    <span class="toggle-badge" :class="cfg.keyboard.configure_keyboard?'on':'off'" x-text="cfg.keyboard.configure_keyboard?'On':'Off'"></span>
+                                </div>
+                                <div class="toggle-row" x-show="cfg.keyboard.configure_keyboard" x-transition @click="cfg.keyboard.add_arabic=!cfg.keyboard.add_arabic">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <span>🌍</span>
+                                        <div>
+                                            <h4>Add Arabic layout to keyboard list</h4>
+                                            <div style="font-size:.8rem;color:var(--muted);margin-top:2px;">Applies dual English/French layout plus standard Arabic layout</div>
+                                        </div>
+                                    </div>
+                                    <span class="toggle-badge" :class="cfg.keyboard.add_arabic?'on':'off'" x-text="cfg.keyboard.add_arabic?'On':'Off'"></span>
+                                </div>
+                                <div class="toggle-row" @click="cfg.power.configure_power=!cfg.power.configure_power">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <span>🔋</span>
+                                        <div>
+                                            <h4>Power management</h4>
+                                            <div style="font-size:.8rem;color:var(--muted);margin-top:2px;">Sets sleep timeout to 1.5 hours via gsettings</div>
+                                        </div>
+                                    </div>
+                                    <span class="toggle-badge" :class="cfg.power.configure_power?'on':'off'" x-text="cfg.power.configure_power?'On':'Off'"></span>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Add New Alias Form -->
-                        <div style="margin-top: 16px; background: rgba(255, 255, 255, 0.01); border: 1px dashed var(--border-color); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
-                            <div style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">➕ Add Custom Alias</div>
-                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                                <input type="text" x-model="newAliasName" placeholder="alias name (e.g. gp)" class="text-input" style="flex: 1; min-width: 150px; font-family: monospace; font-size: 0.9rem; margin-top: 0;">
-                                <input type="text" x-model="newAliasCommand" placeholder="command (e.g. git push)" class="text-input" style="flex: 2; min-width: 200px; font-family: monospace; font-size: 0.9rem; margin-top: 0;">
+                        <!-- ── STEP 7 – Summary ── -->
+                        <div id="step-7" class="step-panel" :class="{'active': step===7}">
+                            <div>
+                                <h1 class="step-title">Review &amp; Execute</h1>
+                                <p class="step-sub">Confirm your selections below, then click <strong>Run Setup</strong> to apply everything.</p>
                             </div>
-                            <button type="button" @click="addAlias()" class="btn" style="align-self: flex-start; background: rgba(139, 92, 246, 0.2); border: 1px solid var(--secondary-accent); color: var(--text-light); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">
-                                Add Alias
+                            <div class="summary-list">
+                                <div class="s-row">
+                                    <div class="s-label">🛠 Install Oh-My-Zsh</div>
+                                    <span class="s-badge" :class="cfg.zsh.install_oh_my_zsh?'on':'off'" x-text="cfg.zsh.install_oh_my_zsh?'Yes':'No'"></span>
+                                </div>
+                                <div class="s-row">
+                                    <div class="s-label">👤 Configure Git globally</div>
+                                    <span class="s-badge" :class="cfg.git.configure_git?'on':'off'" x-text="cfg.git.configure_git?'Yes':'No'"></span>
+                                </div>
+                                <div class="s-sub" x-show="cfg.git.configure_git" x-text="cfg.git.git_name + ' &lt;' + cfg.git.git_email + '&gt;'"></div>
+                                <div class="s-row">
+                                    <div class="s-label">🎨 Apply Gnome theme</div>
+                                    <span class="s-badge" :class="cfg.theme.apply_theme?'on':'off'" x-text="cfg.theme.apply_theme?'Yes':'No'"></span>
+                                </div>
+                                <div class="s-sub" x-show="cfg.theme.apply_theme" x-text="(cfg.theme.theme_mode==='1'?'Dark':'Light') + ' — ' + cfg.theme.theme_name"></div>
+                                <div class="s-row">
+                                    <div class="s-label">🔤 Install repo fonts</div>
+                                    <span class="s-badge" :class="cfg.fonts.configure_fonts?'on':'off'" x-text="cfg.fonts.configure_fonts?'Yes':'No'"></span>
+                                </div>
+                                <div class="s-sub" x-show="cfg.fonts.configure_fonts && cfg.fonts.font_name" x-text="'Font family: ' + cfg.fonts.font_name"></div>
+                                <div class="s-row">
+                                    <div class="s-label">🖼 Apply wallpaper</div>
+                                    <span class="s-badge" :class="cfg.wallpaper.apply_background?'on':'off'" x-text="cfg.wallpaper.apply_background?'Yes':'No'"></span>
+                                </div>
+                                <div class="s-sub" x-show="cfg.wallpaper.apply_background && cfg.wallpaper.background_image" x-text="cfg.wallpaper.background_image"></div>
+                                <div class="s-row">
+                                    <div class="s-label">🐳 Docker rootless</div>
+                                    <span class="s-badge" :class="cfg.docker.enable_docker?'on':'off'" x-text="cfg.docker.enable_docker?'Yes':'No'"></span>
+                                </div>
+                                <div class="s-row">
+                                    <div class="s-label">🐚 Default shell → Zsh</div>
+                                    <span class="s-badge" :class="cfg.shell.enable_zsh_default?'on':'off'" x-text="cfg.shell.enable_zsh_default?'Yes':'No'"></span>
+                                </div>
+                                <div class="s-row">
+                                    <div class="s-label">⚓ Pin Discord to Dock</div>
+                                    <span class="s-badge" :class="cfg.dock.pin_discord?'on':'off'" x-text="cfg.dock.pin_discord?'Yes':'No'"></span>
+                                </div>
+                                <div class="s-row">
+                                    <div class="s-label">⌨️ US+FR keyboard</div>
+                                    <span class="s-badge" :class="cfg.keyboard.configure_keyboard?'on':'off'" x-text="cfg.keyboard.configure_keyboard?'Yes':'No'"></span>
+                                </div>
+                                <div class="s-sub" x-show="cfg.keyboard.configure_keyboard" x-text="'Layouts: US + FR' + (cfg.keyboard.add_arabic ? ' + AR (Arabic)' : '')"></div>
+                                <div class="s-row">
+                                    <div class="s-label">🔋 Power management</div>
+                                    <span class="s-badge" :class="cfg.power.configure_power?'on':'off'" x-text="cfg.power.configure_power?'Yes':'No'"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ── STEP 8 – Execution ── -->
+                        <div id="step-8" class="step-panel" :class="{'active': step===8}">
+                            <div>
+                                <h1 class="step-title">Applying Configuration</h1>
+                                <p class="step-sub">Setup is running live. Please do not close this window.</p>
+                            </div>
+                            <div class="console" id="console-output">
+                                <template x-for="(l, i) in logs" :key="i">
+                                    <div class="c-line" :class="l.cls" x-text="l.text"></div>
+                                </template>
+                            </div>
+                            <div class="spinner-row" x-show="!execFinished">
+                                <div class="pulse"></div>
+                                <span>Executing installer tasks… please wait.</span>
+                            </div>
+                            <div x-show="execFinished && !execErr" x-transition style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+                                <p style="color:var(--green);font-weight:700;">✔ Setup completed successfully!</p>
+                                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                                    <button class="btn btn-primary" @click="finish(true)">💾 Save &amp; Restart Terminal</button>
+                                    <button class="btn btn-secondary" @click="finish(false)">Restart Terminal only</button>
+                                </div>
+                            </div>
+                            <div x-show="execFinished && execErr" x-transition style="margin-top:10px;">
+                                <p style="color:var(--red);font-weight:700;margin-bottom:8px;">✖ An error occurred.</p>
+                                <button class="btn btn-secondary" @click="goTo(7)">← Back to Summary</button>
+                            </div>
+                        </div>
+
+                        <!-- ── NAV ACTIONS ── -->
+                        <div class="nav-actions" x-show="step < 8">
+                            <button class="btn btn-secondary"
+                                    @click="prev()"
+                                    :style="step===0 ? 'opacity:0;pointer-events:none;' : ''">
+                                ← Back
+                            </button>
+                            <button class="btn btn-primary" @click="next()"
+                                    x-text="step===7 ? '▶ Run Setup' : 'Next →'">
                             </button>
                         </div>
+
+                    </div><!-- card-body -->
+                </div><!-- card -->
+            </div><!-- content-area -->
+
+            <!-- ══ BOTTOM STATUS BAR ══ -->
+            <div class="status-bar">
+                <div class="pills">
+                    <div class="pill" :class="{'on': cfg.zsh.install_oh_my_zsh}">
+                        <div class="pill-dot"></div> Oh-My-Zsh
+                    </div>
+                    <div class="pill" :class="{'on': cfg.git.configure_git}">
+                        <div class="pill-dot"></div> Git
+                    </div>
+                    <div class="pill" :class="{'on': cfg.theme.apply_theme}">
+                        <div class="pill-dot"></div> Theme
+                    </div>
+                    <div class="pill" :class="{'on': cfg.fonts.configure_fonts}">
+                        <div class="pill-dot"></div>
+                        <span x-text="cfg.fonts.configure_fonts && cfg.fonts.font_name ? cfg.fonts.font_name : 'Fonts'"></span>
+                    </div>
+                    <div class="pill" :class="{'on': cfg.wallpaper.apply_background}">
+                        <div class="pill-dot"></div> Wallpaper
+                    </div>
+                    <div class="pill" :class="{'on': cfg.docker.enable_docker}">
+                        <div class="pill-dot"></div> Docker
+                    </div>
+                    <div class="pill" :class="{'on': cfg.shell.enable_zsh_default}">
+                        <div class="pill-dot"></div> Zsh
+                    </div>
+                    <div class="pill" :class="{'on': cfg.dock.pin_discord}">
+                        <div class="pill-dot"></div> Dock Favorites
                     </div>
                 </div>
+                <span style="color:var(--muted);">ZoneRestore v2 · step <span x-text="step+1"></span> / 9</span>
             </div>
+        </div><!-- main -->
 
-            <!-- STEP 6: Summary & Confirmation -->
-            <div class="step-content" id="step6">
-                <h2>Setup Overview</h2>
-                <div class="summary-list">
-                    <div class="summary-row">
-                        <span class="summary-label">Install Oh-My-Zsh</span>
-                        <span class="summary-value" id="sumZsh"><span class="indicator"></span><span></span></span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Configure Git Credentials</span>
-                        <span class="summary-value" id="sumGit"><span class="indicator"></span><span></span></span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Apply System Theme</span>
-                        <span class="summary-value" id="sumTheme"><span class="indicator"></span><span></span></span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Set Desktop Background</span>
-                        <span class="summary-value" id="sumBg"><span class="indicator"></span><span></span></span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Enable Docker Rootless</span>
-                        <span class="summary-value" id="sumDocker"><span class="indicator"></span><span></span></span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Zsh as Default Shell</span>
-                        <span class="summary-value" id="sumShell"><span class="indicator"></span><span></span></span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Configure Keyboard Layouts</span>
-                        <span class="summary-value" id="sumKeyboard"><span class="indicator"></span><span></span></span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Configure Power Settings</span>
-                        <span class="summary-value" id="sumPower"><span class="indicator"></span><span></span></span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Install Custom Fonts</span>
-                        <span class="summary-value" id="sumFonts"><span class="indicator"></span><span></span></span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Prompt Display Name</span>
-                        <span class="summary-value" id="sumPromptName"><span></span></span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Active Zsh Aliases</span>
-                        <span class="summary-value" id="sumAliases"><span></span></span>
-                    </div>
-                </div>
-                <div class="toggle-card" style="margin-top: 24px;">
-                    <div class="toggle-info" style="text-align: left;">
-                        <div class="toggle-title">Save & Export Settings</div>
-                        <div class="toggle-desc">Automatically save these choices to ~/.config/zonerestore/config.json.</div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="exportSettingsWeb" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
+    </div><!-- root -->
 
-            <!-- Streaming Console View -->
-            <div class="console-pulse-container" id="pulseContainer" style="display: none; margin-bottom: 16px; justify-content: center;">
-                <div class="pulse-dot"></div>
-                <span id="consoleStatusText" style="font-weight: 500;">Applying changes... Please wait.</span>
-            </div>
-            
-            <div class="terminal-window" id="terminalWindow" style="display: none; margin-bottom: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);">
-                <div class="terminal-header" style="background: #141416; border-bottom: 1px solid var(--border-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; gap: 8px;">
-                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
-                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
-                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
-                    </div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted); font-family: monospace; font-weight: 500;">zsh - ZoneRestore</div>
-                    <div style="width: 52px;"></div>
-                </div>
-                <div class="console-card" id="consoleCard" style="border-radius: 0; border: none; margin-bottom: 0; height: 320px; display: block; background: #09090b;">
-                    <!-- Exec logs shown live -->
-                </div>
-            </div>
-
-            <!-- Finish View -->
-            <div class="finish-view" id="finishView">
-                <div class="finish-icon">🎉</div>
-                <h2>Setup Complete!</h2>
-                <p style="color: var(--text-muted); margin-bottom: 24px; line-height: 1.6;">
-                    All configurations have been successfully completed.<br>
-                    You can close this tab and restart your terminal program to experience the upgrades.
-                </p>
-                <button class="btn btn-next" onclick="restartTerminal()" style="width: 100%;">Reopen & Reload Terminals</button>
-            </div>
-
-            <!-- Button navigation row -->
-            <div class="btn-row" id="btnRow">
-                <button class="btn btn-prev" id="btnPrev" onclick="prevStep()">Previous</button>
-                <button class="btn btn-next" id="btnNext" onclick="nextStep()">Next</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Startup Dialog Modal -->
-    <div id="startupModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(9, 9, 11, 0.85); backdrop-filter: blur(12px); z-index: 1000; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
-        <div class="modal-card" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; padding: 40px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); transform: scale(0.95); transition: transform 0.3s ease, opacity 0.3s ease;">
-            <div style="font-size: 3rem; margin-bottom: 20px;">⚙️</div>
-            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem; margin-bottom: 12px; color: var(--text-main);">Welcome to ZoneRestore</h2>
-            <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 32px; line-height: 1.5;">Configure your shell, tools, and theme preferences to build a dream workspace.</p>
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-                <button onclick="selectStartupOption('fresh')" style="background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent)); border: none; color: var(--text-main); padding: 16px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);">
-                    🚀 First-Time Setup (Start Fresh)
-                </button>
-                <button onclick="selectStartupOption('import')" style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-color); color: var(--text-main); padding: 16px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: background 0.2s, transform 0.2s;">
-                    💾 Import Saved Settings (config.json)
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- Toast -->
+    <div class="toast" id="toast"><span id="toast-msg">✔ Done!</span></div>
 
     <script>
-        let currentStep = 1;
-        const totalSteps = 6;
-        let importedSettings = false;
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('wizard', () => ({
+            step: 0,
+            steps: [
+                'Import Profile',
+                'Oh-My-Zsh',
+                'Git Credentials',
+                'Gnome Theme',
+                'Fonts',
+                'Wallpaper',
+                'System Defaults',
+                'Summary'
+            ],
 
-        let selectedThemeMode = "1"; // "1" Dark, "2" Light
-        let availableThemes = {
-            dark: [],
-            light: []
-        };
-        let wallpapers = [];
+            importSettings: true,
+            wpSource: 'repo',
 
-        // Load themes and wallpapers dynamically from the backend
-        async function fetchSystemResources() {
-            try {
-                const response = await fetch('/api/resources');
-                const data = await response.json();
-                availableThemes.dark = data.dark_themes || [];
-                availableThemes.light = data.light_themes || [];
-                wallpapers = data.wallpapers || [];
+            cfg: {
+                zsh: {
+                    install_oh_my_zsh: true
+                },
+                git: {
+                    configure_git: true,
+                    git_name: '',
+                    git_email: ''
+                },
+                theme: {
+                    apply_theme: true,
+                    theme_mode: '1',
+                    theme_name: ''
+                },
+                fonts: {
+                    configure_fonts: true,
+                    font_name: ''
+                },
+                wallpaper: {
+                    apply_background: true,
+                    background_image: ''
+                },
+                docker: {
+                    enable_docker: true
+                },
+                dock: {
+                    pin_discord: true
+                },
+                keyboard: {
+                    configure_keyboard: true,
+                    add_arabic: false
+                },
+                power: {
+                    configure_power: true
+                },
+                shell: {
+                    enable_zsh_default: false
+                },
+                custom_username: '',
+                aliases: []
+            },
 
-                populateThemeDropdown();
-                populateWallpaperDropdown();
+            // Resources loaded from API
+            darkThemes:  [],
+            lightThemes: [],
+            fonts:       [],
+            wallpapers:  [],
 
-                // Open the startup modal overlay
-                const modal = document.getElementById("startupModal");
-                modal.style.display = "flex";
-                setTimeout(() => {
-                    modal.style.opacity = "1";
-                    modal.querySelector(".modal-card").style.transform = "scale(1)";
-                }, 50);
-            } catch (err) {
-                console.error("Failed to load resources:", err);
-            }
-        }
+            fontsLoading:   true,
+            wpLoading:      true,
 
-        function applyConfigToUI(cfg, isImported) {
-            if (!cfg) return;
+            // Computed shortcut
+            get themeList() {
+                return this.cfg.theme.theme_mode === '1' ? this.darkThemes : this.lightThemes;
+            },
 
-            importedSettings = !!isImported;
-            const banner = document.getElementById("importBanner");
-            if (banner) {
-                banner.style.display = importedSettings ? "flex" : "none";
-            }
+            // Execution
+            logs:         [],
+            execFinished: false,
+            execErr:      false,
 
-            // Oh My Zsh
-            document.getElementById("installZsh").checked = cfg.install_oh_my_zsh !== false;
-
-            // Git Setup
-            document.getElementById("setupGit").checked = cfg.configure_git === true;
-            document.getElementById("gitName").value = cfg.git_name || "";
-            document.getElementById("gitEmail").value = cfg.git_email || "";
-            toggleGitFields();
-
-            // Gnome Themes
-            document.getElementById("setupTheme").checked = cfg.apply_theme !== false;
-            selectedThemeMode = cfg.theme_mode || "1";
-            document.getElementById("themeModeDark").classList.toggle("selected", selectedThemeMode === "1");
-            document.getElementById("themeModeLight").classList.toggle("selected", selectedThemeMode === "2");
-            populateThemeDropdown();
-            if (cfg.theme_name) {
-                document.getElementById("themeSelect").value = cfg.theme_name;
-            }
-            toggleThemeFields();
-
-            // Background Desktop Wallpaper
-            document.getElementById("setupBg").checked = cfg.apply_background !== false;
-            const bgImage = cfg.background_image || "";
-            const isRepoWp = wallpapers.some(wp => bgImage.endsWith(wp));
-            if (bgImage === "" || bgImage.endsWith("Background.jpeg")) {
-                document.getElementById("bgSource").value = "1";
-            } else if (isRepoWp || bgImage.includes("wallpapers/")) {
-                document.getElementById("bgSource").value = "2";
-                const parts = bgImage.split("/");
-                const filename = parts[parts.length - 1];
-                document.getElementById("repoWpSelect").value = filename;
-            } else {
-                document.getElementById("bgSource").value = "3";
-                selectedGnomeImagePath = bgImage;
-                document.getElementById("selectedImagePath").textContent = bgImage || "No image selected";
-            }
-            toggleBgInputs();
-            toggleBgFields();
-            updateWallpaperPreview();
-
-            // Docker & Default Shell
-            document.getElementById("installDocker").checked = cfg.enable_docker === true;
-            document.getElementById("defaultShellZsh").checked = cfg.enable_zsh_default !== false;
-            document.getElementById("configureKeyboard").checked = cfg.configure_keyboard !== false;
-            document.getElementById("configurePower").checked = cfg.configure_power !== false;
-            document.getElementById("configureFonts").checked = cfg.configure_fonts !== false;
-
-            // Dispatch to Alpine
-            document.dispatchEvent(new CustomEvent('load-aliases', { detail: {
-                customUsername: cfg.custom_username,
-                aliases: cfg.aliases
-            }}));
-        }
-
-        async function selectStartupOption(option) {
-            const modal = document.getElementById("startupModal");
-
-            if (option === 'fresh') {
+            // ── INIT ──
+            async init() {
+                // Load stored cfg
                 try {
-                    const res = await fetch('/api/config/default');
-                    const defaultCfg = await res.json();
-                    applyConfigToUI(defaultCfg, false);
-                    showToast("Loaded fresh default settings.", true);
+                    const r = await fetch('/api/config');
+                    if (r.ok) this.applyRemoteCfg(await r.json());
+                } catch(e) {}
 
-                    // Close modal
-                    modal.style.opacity = "0";
-                    modal.querySelector(".modal-card").style.transform = "scale(0.95)";
-                    setTimeout(() => { modal.style.display = "none"; }, 300);
-                } catch (err) {
-                    showToast("Failed to load default configuration: " + err.message, false);
-                }
-            } else if (option === 'import') {
+                // Load resources (themes, fonts, wallpapers)
+                this.fetchResources();
+            },
+
+            async fetchResources() {
+                this.fontsLoading = true;
+                this.wpLoading    = true;
                 try {
-                    const res = await fetch('/api/config/import');
-                    const data = await res.json();
-                    if (data.status === 'success') {
-                        applyConfigToUI(data.config, true);
-                        showToast("Settings imported successfully!", true);
+                    const r = await fetch('/api/resources');
+                    if (!r.ok) return;
+                    const d = await r.json();
+                    this.darkThemes  = d.dark_themes  || [];
+                    this.lightThemes = d.light_themes || [];
 
-                        // Close modal
-                        modal.style.opacity = "0";
-                        modal.querySelector(".modal-card").style.transform = "scale(0.95)";
-                        setTimeout(() => { modal.style.display = "none"; }, 300);
-                    } else if (data.status === 'canceled') {
-                        showToast("Import canceled", false);
-                    } else if (data.status === 'error') {
-                        showToast("Failed to import: " + data.message, false);
+                    // Fonts: array of { name, files[] }
+                    this.fonts = d.fonts || [];
+                    this.injectFontFaces(this.fonts);
+
+                    // Wallpapers: array of strings
+                    this.wallpapers = d.wallpapers || [];
+
+                    // Pick sensible defaults if not set
+                    if (!this.cfg.theme.theme_name) {
+                        this.cfg.theme.theme_name = this.themeList[0] || 'Yaru-dark';
                     }
-                } catch (err) {
-                    showToast("Failed to load saved configuration: " + err.message, false);
+                    if (!this.cfg.fonts.font_name && this.fonts.length > 0) {
+                        this.cfg.fonts.font_name = this.fonts[0].name;
+                    }
+                    if (!this.cfg.wallpaper.background_image && this.wallpapers.length > 0) {
+                        this.cfg.wallpaper.background_image = this.wallpapers[0];
+                    }
+                } catch(e) {
+                    console.error('fetchResources error:', e);
+                } finally {
+                    this.fontsLoading = false;
+                    this.wpLoading    = false;
                 }
-            }
-        }
+            },
 
-        function populateThemeDropdown() {
-            const select = document.getElementById("themeSelect");
-            select.innerHTML = "";
-            const list = selectedThemeMode === "1" ? availableThemes.dark : availableThemes.light;
-
-            if (list.length === 0) {
-                const opt = document.createElement("option");
-                opt.value = selectedThemeMode === "1" ? "Yaru-dark" : "Yaru";
-                opt.textContent = selectedThemeMode === "1" ? "Yaru-dark" : "Yaru";
-                select.appendChild(opt);
-                return;
-            }
-
-            list.forEach(t => {
-                const opt = document.createElement("option");
-                opt.value = t;
-                opt.textContent = t;
-                select.appendChild(opt);
-            });
-        }
-
-        function populateWallpaperDropdown() {
-            const select = document.getElementById("repoWpSelect");
-            select.innerHTML = "";
-            wallpapers.forEach(wp => {
-                const opt = document.createElement("option");
-                opt.value = wp;
-                opt.textContent = wp;
-                select.appendChild(opt);
-            });
-        }
-
-        let selectedGnomeImagePath = "";
-
-        async function selectGnomeImage() {
-            try {
-                const res = await fetch('/api/select-wallpaper');
-                if (!res.ok) throw new Error("Server error");
-                const data = await res.json();
-                if (data.status === "success" && data.path) {
-                    selectedGnomeImagePath = data.path;
-                    document.getElementById("selectedImagePath").textContent = data.path;
-                    updateWallpaperPreview();
-                } else if (data.status === "canceled") {
-                    showToast("Selection canceled", false);
+            injectFontFaces(fonts) {
+                let css = '';
+                fonts.forEach(f => {
+                    if (f.files && f.files.length > 0) {
+                        const file = f.files[0];
+                        const url = '/api/fonts/file?font=' + encodeURIComponent(f.name) + '&file=' + encodeURIComponent(file);
+                        css += '@font-face { font-family: "' + f.name + '"; src: url("' + url + '"); }\n';
+                    }
+                });
+                if (css) {
+                    const s = document.createElement('style');
+                    s.textContent = css;
+                    document.head.appendChild(s);
                 }
-            } catch (err) {
-                showToast("Failed to select image: " + err.message, false);
-            }
-        }
+            },
 
-        function updateWallpaperPreview() {
-            const bgEnabled = document.getElementById("setupBg").checked;
-            const previewWrapper = document.getElementById("wallpaperPreviewWrapper");
-            const previewImg = document.getElementById("wallpaperPreviewImg");
-            const previewPlaceholder = document.getElementById("wallpaperPreviewPlaceholder");
+            applyRemoteCfg(d) {
+                this.cfg.zsh.install_oh_my_zsh  = d.zsh?.install_oh_my_zsh  ?? true;
+                this.cfg.git.configure_git      = d.git?.configure_git      ?? true;
+                this.cfg.git.git_name           = d.git?.git_name           || '';
+                this.cfg.git.git_email          = d.git?.git_email          || '';
+                this.cfg.theme.apply_theme      = d.theme?.apply_theme      ?? true;
+                this.cfg.theme.theme_mode       = d.theme?.theme_mode       || '1';
+                this.cfg.theme.theme_name       = d.theme?.theme_name       || '';
+                this.cfg.fonts.configure_fonts  = d.fonts?.configure_fonts  ?? true;
+                this.cfg.fonts.font_name        = d.fonts?.font_name        || '';
+                this.cfg.wallpaper.apply_background = d.wallpaper?.apply_background ?? true;
+                this.cfg.docker.enable_docker   = d.docker?.enable_docker   ?? true;
+                this.cfg.dock.pin_discord       = d.dock?.pin_discord       ?? true;
+                this.cfg.keyboard.configure_keyboard = d.keyboard?.configure_keyboard ?? true;
+                this.cfg.keyboard.add_arabic    = d.keyboard?.add_arabic    ?? false;
+                this.cfg.power.configure_power  = d.power?.configure_power  ?? true;
+                this.cfg.shell.enable_zsh_default = d.shell?.enable_zsh_default ?? false;
+                this.cfg.custom_username        = d.custom_username         || '';
+                this.cfg.aliases                = d.aliases                 || [];
 
-            if (!bgEnabled) {
-                previewWrapper.style.display = "none";
-                return;
-            }
-
-            const src = document.getElementById("bgSource").value;
-            let previewUrl = "";
-
-            if (src === "1") {
-                previewUrl = '/api/wallpaper/preview?name=Background.jpeg';
-            } else if (src === "2") {
-                const wpName = document.getElementById("repoWpSelect").value;
-                if (wpName) {
-                    previewUrl = '/api/wallpaper/preview?name=' + encodeURIComponent(wpName);
+                // Resolve background image: extract filename from absolute path
+                if (d.wallpaper?.background_image) {
+                    const name = d.wallpaper.background_image.split('/').pop();
+                    if (d.wallpaper.background_image.startsWith('/') && !d.wallpaper.background_image.includes('themes/wallpapers/')) {
+                        this.cfg.wallpaper.background_image = d.wallpaper.background_image;
+                        this.wpSource = 'custom';
+                    } else {
+                        this.cfg.wallpaper.background_image = name;
+                        this.wpSource = 'repo';
+                    }
                 }
-            } else if (src === "3") {
-                if (selectedGnomeImagePath) {
-                    previewUrl = '/api/wallpaper/preview?path=' + encodeURIComponent(selectedGnomeImagePath);
-                }
-            }
+            },
 
-            if (previewUrl) {
-                previewImg.src = previewUrl;
-                previewImg.style.display = "block";
-                previewPlaceholder.style.display = "none";
-                previewWrapper.style.display = "block";
-            } else {
-                previewImg.src = "";
-                previewImg.style.display = "none";
-                previewPlaceholder.style.display = "flex";
-                previewWrapper.style.display = "block";
-            }
-        }
-
-        function selectThemeMode(mode) {
-            selectedThemeMode = mode;
-            document.getElementById("themeModeDark").classList.toggle("selected", mode === "1");
-            document.getElementById("themeModeLight").classList.toggle("selected", mode === "2");
-            populateThemeDropdown();
-        }
-
-        function toggleGitFields() {
-            document.getElementById("gitFields").style.opacity = document.getElementById("setupGit").checked ? "1" : "0.4";
-            document.getElementById("gitFields").style.pointerEvents = document.getElementById("setupGit").checked ? "auto" : "none";
-        }
-
-        function toggleThemeFields() {
-            document.getElementById("themeFields").style.opacity = document.getElementById("setupTheme").checked ? "1" : "0.4";
-            document.getElementById("themeFields").style.pointerEvents = document.getElementById("setupTheme").checked ? "auto" : "none";
-        }
-
-        function toggleBgFields() {
-            document.getElementById("bgFields").style.opacity = document.getElementById("setupBg").checked ? "1" : "0.4";
-            document.getElementById("bgFields").style.pointerEvents = document.getElementById("setupBg").checked ? "auto" : "none";
-            updateWallpaperPreview();
-        }
-
-        function toggleBgInputs() {
-            const src = document.getElementById("bgSource").value;
-            document.getElementById("repoWallpapersWrapper").style.display = src === "2" ? "block" : "none";
-            document.getElementById("customPathWrapper").style.display = src === "3" ? "block" : "none";
-            updateWallpaperPreview();
-        }
-
-        function prevStep() {
-            if (currentStep > 1) {
-                showStep(currentStep - 1);
-            }
-        }
-
-        function nextStep() {
-            if (currentStep < totalSteps) {
-                showStep(currentStep + 1);
-            } else if (currentStep === totalSteps) {
-                submitConfig();
-            }
-        }
-
-        function showStep(step) {
-            document.getElementById(` + "`" + `step${currentStep}` + "`" + `).classList.remove("active");
-            currentStep = step;
-            document.getElementById(` + "`" + `step${currentStep}` + "`" + `).classList.add("active");
-
-            // Progress bar
-            const percent = Math.round((currentStep / totalSteps) * 100);
-            document.getElementById("progressBarFill").style.width = percent + "%";
-            document.getElementById("progressPercent").textContent = percent + "%";
-            document.getElementById("progressStepNum").textContent = ` + "`" + `Step ${currentStep} of ${totalSteps}` + "`" + `;
-
-            // Buttons
-            document.getElementById("btnPrev").style.visibility = currentStep === 1 ? "hidden" : "visible";
-            document.getElementById("btnNext").textContent = currentStep === totalSteps ? "Apply Config" : "Next";
-
-            // Import banner visibility logic
-            const banner = document.getElementById("importBanner");
-            if (banner) {
-                if (importedSettings && currentStep !== 4 && currentStep !== 6) {
-                    banner.style.display = "flex";
+            // ── NAVIGATION ──
+            goTo(i) {
+                if (i < 8) this.step = i;
+            },
+            prev() {
+                if (this.step > 0) this.step--;
+            },
+            next() {
+                if (this.step === 7) {
+                    this.runSetup();
                 } else {
-                    banner.style.display = "none";
+                    this.step++;
                 }
-            }
+            },
 
-            if (currentStep === 6) {
-                renderSummary();
-            }
-        }
+            // ── THEME MODE SWITCH ──
+            switchThemeMode(mode) {
+                this.cfg.theme.theme_mode = mode;
+                const list = mode === '1' ? this.darkThemes : this.lightThemes;
+                if (list.length && !list.includes(this.cfg.theme.theme_name)) {
+                    this.cfg.theme.theme_name = list[0];
+                }
+            },
 
-        function renderSummary() {
-            updateSummaryRow("sumZsh", document.getElementById("installZsh").checked, "Install Oh-My-Zsh", "Skip Oh-My-Zsh");
-            
-            const gitEnabled = document.getElementById("setupGit").checked;
-            const gitName = document.getElementById("gitName").value.trim();
-            updateSummaryRow("sumGit", gitEnabled, gitEnabled ? ` + "`" + `Configure Git (${gitName || "Default"})` + "`" + ` : "Configure Git", "Skip Git");
+            // ── ACTIONS ──
+            async loadDefault() {
+                try {
+                    const r = await fetch('/api/config/default');
+                    if (r.ok) {
+                        this.applyRemoteCfg(await r.json());
+                        this.toast('↺ Reset to defaults');
+                    }
+                } catch(e) {}
+            },
 
-            const themeEnabled = document.getElementById("setupTheme").checked;
-            const themeName = document.getElementById("themeSelect").value;
-            const modeName = selectedThemeMode === "1" ? "Dark" : "Light";
-            updateSummaryRow("sumTheme", themeEnabled, themeEnabled ? ` + "`" + `Apply ${modeName} Theme (${themeName})` + "`" + ` : "Apply Theme", "Skip Theme");
+            async importJSON() {
+                try {
+                    const r = await fetch('/api/config/import');
+                    if (r.ok) {
+                        const d = await r.json();
+                        if (d.status === 'success') {
+                            this.applyRemoteCfg(d.config);
+                            this.toast('📂 Settings imported');
+                            this.step = 1;
+                        }
+                    }
+                } catch(e) {}
+            },
 
-            const bgEnabled = document.getElementById("setupBg").checked;
-            let bgVal = "Default Background.jpeg";
-            const bgSrc = document.getElementById("bgSource").value;
-            if (bgSrc === "2") bgVal = "Wallpaper: " + document.getElementById("repoWpSelect").value;
-            else if (bgSrc === "3") bgVal = "Custom Image: " + (selectedGnomeImagePath || "None");
-            updateSummaryRow("sumBg", bgEnabled, bgEnabled ? ` + "`" + `Set Wallpaper (${bgVal})` + "`" + ` : "Set Background", "Skip Background");
+            async browseWallpaper() {
+                try {
+                    const r = await fetch('/api/select-wallpaper');
+                    if (r.ok) {
+                        const d = await r.json();
+                        if (d.status === 'success') {
+                            this.cfg.wallpaper.background_image = d.path;
+                            this.wpSource = 'custom';
+                            this.toast('🖼 Custom wallpaper selected');
+                        }
+                    }
+                } catch(e) {}
+            },
 
-            updateSummaryRow("sumDocker", document.getElementById("installDocker").checked, "Install Docker Rootless", "Skip Docker");
-            updateSummaryRow("sumShell", document.getElementById("defaultShellZsh").checked, "Set Zsh as default", "Keep Bash");
-            updateSummaryRow("sumKeyboard", document.getElementById("configureKeyboard").checked, "Configure Keyboard Layouts", "Skip Keyboard Layouts");
-            updateSummaryRow("sumPower", document.getElementById("configurePower").checked, "Configure Power Settings", "Skip Power Settings");
-            updateSummaryRow("sumFonts", document.getElementById("configureFonts").checked, "Install Custom Fonts", "Skip Fonts");
+            // ── RUN SETUP ──
+            async runSetup() {
+                this.step = 8;
+                this.logs = [];
+                this.execFinished = false;
+                this.execErr = false;
 
-            let aliasesData = { customUsername: '', aliases: [] };
-            document.dispatchEvent(new CustomEvent('get-aliases', {
-                detail: { callback: (data) => { aliasesData = data; } }
-            }));
-            const customUsername = aliasesData.customUsername || "Default (None)";
-            const activeAliasesCount = (aliasesData.aliases || []).filter(a => a.enabled).length;
-
-            document.getElementById("sumPromptName").querySelector("span").textContent = customUsername;
-            document.getElementById("sumAliases").querySelector("span").textContent = activeAliasesCount + " Enabled";
-        }
-
-        function updateSummaryRow(elementId, enabled, activeText, inactiveText) {
-            const container = document.getElementById(elementId);
-            const indicator = container.querySelector(".indicator");
-            const textSpan = container.querySelector("span:last-child");
-
-            indicator.className = "indicator " + (enabled ? "enabled" : "disabled");
-            textSpan.textContent = enabled ? activeText : inactiveText;
-        }
-
-        async function submitConfig() {
-            // Read options
-            const installZsh = document.getElementById("installZsh").checked;
-            const configureGit = document.getElementById("setupGit").checked;
-            const gitName = document.getElementById("gitName").value;
-            const gitEmail = document.getElementById("gitEmail").value;
-            const applyTheme = document.getElementById("setupTheme").checked;
-            const themeName = document.getElementById("themeSelect").value;
-            const applyBackground = document.getElementById("setupBg").checked;
-
-            let backgroundImage = "";
-            const bgSrc = document.getElementById("bgSource").value;
-            if (bgSrc === "2") {
-                backgroundImage = document.getElementById("repoWpSelect").value; // we'll join it in Go
-            } else if (bgSrc === "3") {
-                if (applyBackground && !selectedGnomeImagePath) {
-                    showToast("Please select a custom wallpaper image first.", false);
+                // POST config
+                try {
+                    const body = Object.assign({}, this.cfg);
+                    // If using repo gallery, keep just the filename (server resolves absolute path)
+                    const res = await fetch('/api/apply', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                    if (!res.ok) throw new Error('Config POST failed: ' + res.status);
+                } catch(e) {
+                    this.logLine('Error: ' + e.message, 'c-error');
+                    this.execFinished = true;
+                    this.execErr = true;
                     return;
                 }
-                backgroundImage = selectedGnomeImagePath;
-            }
 
-            const enableDocker = document.getElementById("installDocker").checked;
-            const enableZshDefault = document.getElementById("defaultShellZsh").checked;
-            const configureKeyboard = document.getElementById("configureKeyboard").checked;
-            const configurePower = document.getElementById("configurePower").checked;
-            const configureFonts = document.getElementById("configureFonts").checked;
+                // Stream logs via SSE
+                const es = new EventSource('/api/stream?export=false');
+                const el = document.getElementById('console-output');
 
-            let aliasesData = { customUsername: '', aliases: [] };
-            document.dispatchEvent(new CustomEvent('get-aliases', {
-                detail: { callback: (data) => { aliasesData = data; } }
-            }));
-            const customUsername = aliasesData.customUsername;
-            const aliases = aliasesData.aliases;
+                es.onmessage = (ev) => {
+                    const text = ev.data;
+                    let cls = 'c-line';
+                    if (text.includes('[SUCCESS]') || text.startsWith('✔') || text.toLowerCase().includes('success')) cls = 'c-success';
+                    else if (text.includes('[ERROR]')   || text.startsWith('✖') || text.toLowerCase().includes('error'))   cls = 'c-error';
+                    else if (text.includes('[WARNING]') || text.toLowerCase().includes('warning')) cls = 'c-warn';
+                    else if (text.includes('[INFO]')    || text.startsWith('Cloning') || text.startsWith('Applying')) cls = 'c-info';
+                    this.logLine(text, cls);
+                };
 
-            const payload = {
-                install_oh_my_zsh: installZsh,
-                configure_git: configureGit,
-                git_name: gitName,
-                git_email: gitEmail,
-                apply_theme: applyTheme,
-                theme_mode: selectedThemeMode,
-                theme_name: themeName,
-                apply_background: applyBackground,
-                background_image: backgroundImage,
-                enable_docker: enableDocker,
-                enable_zsh_default: enableZshDefault,
-                configure_keyboard: configureKeyboard,
-                configure_power: configurePower,
-                configure_fonts: configureFonts,
-                custom_username: customUsername,
-                aliases: aliases
-            };
+                es.onerror = () => {
+                    es.close();
+                    this.execFinished = true;
+                    const last = this.logs[this.logs.length - 1];
+                    this.execErr = !(last && last.text.toLowerCase().includes('finished'));
+                };
+            },
 
-            // Switch to console view
-            document.getElementById("progressBarContainer").style.display = "none";
-            document.getElementById("step6").style.display = "none";
-            document.getElementById("btnRow").style.display = "none";
-            document.getElementById("pulseContainer").style.display = "flex";
-            document.getElementById("terminalWindow").style.display = "block";
-
-            try {
-                // Post config
-                const res = await fetch('/api/apply', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+            logLine(text, cls) {
+                this.logs.push({ text, cls: cls || 'c-line' });
+                this.$nextTick(() => {
+                    const el = document.getElementById('console-output');
+                    if (el) el.scrollTop = el.scrollHeight;
                 });
+            },
 
-                if (!res.ok) {
-                    throw new Error("Failed to post configuration payload.");
+            // ── FINISH ──
+            async finish(save) {
+                if (save) {
+                    try {
+                        await fetch('/api/export', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.cfg)
+                        });
+                        this.toast('💾 Config saved!');
+                    } catch(e) {}
                 }
+                await fetch('/api/restart', { method: 'POST' }).catch(() => {});
+                this.toast('🔄 Reloading terminal…');
+            },
 
-                // Listen to SSE Stream
-                const consoleDiv = document.getElementById("consoleCard");
-                const exportSettings = document.getElementById("exportSettingsWeb").checked;
-                const eventSource = new EventSource(` + "`" + `/api/stream?export=\${exportSettings}` + "`" + `);
-
-                eventSource.onmessage = function(event) {
-                    const line = document.createElement("div");
-                    line.className = "console-line";
-                    line.textContent = event.data;
-                    consoleDiv.appendChild(line);
-                    consoleDiv.scrollTop = consoleDiv.scrollHeight;
-                };
-
-                eventSource.onerror = function() {
-                    // Stream closed or error
-                    eventSource.close();
-                    document.getElementById("pulseContainer").style.display = "none";
-                    document.getElementById("terminalWindow").style.borderColor = "var(--success-color)";
-                    
-                    // Show finish view
-                    document.getElementById("finishView").classList.add("active");
-
-                    // Trigger browser file download if export settings is checked
-                    if (exportSettings) {
-                        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
-                        const downloadAnchor = document.createElement('a');
-                        downloadAnchor.setAttribute("href", dataStr);
-                        downloadAnchor.setAttribute("download", "config.json");
-                        document.body.appendChild(downloadAnchor);
-                        downloadAnchor.click();
-                        downloadAnchor.remove();
-                    }
-                };
-
-            } catch (err) {
-                console.error(err);
-                const consoleDiv = document.getElementById("consoleCard");
-                const errLine = document.createElement("div");
-                errLine.className = "console-line";
-                errLine.style.color = "var(--error-color)";
-                errLine.textContent = "Error occurred: " + err.message;
-                consoleDiv.appendChild(errLine);
-                document.getElementById("pulseContainer").style.display = "none";
+            // ── TOAST ──
+            toast(msg) {
+                const el = document.getElementById('toast');
+                document.getElementById('toast-msg').textContent = msg;
+                el.classList.add('show');
+                setTimeout(() => el.classList.remove('show'), 3200);
             }
-        }
-
-        function showToast(message, isSuccess) {
-            const toast = document.getElementById("toastNotification");
-            toast.textContent = message;
-            toast.style.display = "block";
-            if (isSuccess) {
-                toast.style.background = "rgba(16, 185, 129, 0.15)";
-                toast.style.border = "1px solid var(--success-color)";
-                toast.style.color = "#34d399";
-            } else {
-                toast.style.background = "rgba(239, 68, 68, 0.15)";
-                toast.style.border = "1px solid var(--error-color)";
-                toast.style.color = "#f87171";
-            }
-            setTimeout(() => {
-                toast.style.display = "none";
-            }, 3000);
-        }
-
-        async function manualImport() {
-            try {
-                const configRes = await fetch('/api/config');
-                if (!configRes.ok) throw new Error("Failed to load config.");
-                const configData = await configRes.json();
-                importedSettings = true;
-                applyConfigToUI(configData);
-                showStep(1); // Force banner refresh
-                showToast("Settings imported successfully!", true);
-            } catch (err) {
-                showToast("Failed to import settings: " + err.message, false);
-            }
-        }
-
-        async function manualExport() {
-            try {
-                const installZsh = document.getElementById("installZsh").checked;
-                const configureGit = document.getElementById("setupGit").checked;
-                const gitName = document.getElementById("gitName").value;
-                const gitEmail = document.getElementById("gitEmail").value;
-                const applyTheme = document.getElementById("setupTheme").checked;
-                const themeName = document.getElementById("themeSelect").value;
-                const applyBackground = document.getElementById("setupBg").checked;
-
-                let backgroundImage = "";
-                const bgSrc = document.getElementById("bgSource").value;
-                if (bgSrc === "2") {
-                    backgroundImage = document.getElementById("repoWpSelect").value;
-                } else if (bgSrc === "3") {
-                    if (applyBackground && !selectedGnomeImagePath) {
-                        showToast("Please select a custom wallpaper image first.", false);
-                        return;
-                    }
-                    backgroundImage = selectedGnomeImagePath;
-                }
-
-                const enableDocker = document.getElementById("installDocker").checked;
-                const enableZshDefault = document.getElementById("defaultShellZsh").checked;
-                const configureKeyboard = document.getElementById("configureKeyboard").checked;
-                const configurePower = document.getElementById("configurePower").checked;
-                const configureFonts = document.getElementById("configureFonts").checked;
-
-                let aliasesData = { customUsername: '', aliases: [] };
-                document.dispatchEvent(new CustomEvent('get-aliases', {
-                    detail: { callback: (data) => { aliasesData = data; } }
-                }));
-                const customUsername = aliasesData.customUsername;
-                const aliases = aliasesData.aliases;
-
-                const payload = {
-                    install_oh_my_zsh: installZsh,
-                    configure_git: configureGit,
-                    git_name: gitName,
-                    git_email: gitEmail,
-                    apply_theme: applyTheme,
-                    theme_mode: selectedThemeMode,
-                    theme_name: themeName,
-                    apply_background: applyBackground,
-                    background_image: backgroundImage,
-                    enable_docker: enableDocker,
-                    enable_zsh_default: enableZshDefault,
-                    configure_keyboard: configureKeyboard,
-                    configure_power: configurePower,
-                    configure_fonts: configureFonts,
-                    custom_username: customUsername,
-                    aliases: aliases
-                };
-
-                const res = await fetch('/api/export', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (res.ok) {
-                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
-                    const downloadAnchor = document.createElement('a');
-                    downloadAnchor.setAttribute("href", dataStr);
-                    downloadAnchor.setAttribute("download", "config.json");
-                    document.body.appendChild(downloadAnchor);
-                    downloadAnchor.click();
-                    downloadAnchor.remove();
-
-                    showToast("Settings exported and config.json downloaded successfully!", true);
-                } else {
-                    throw new Error("Failed to write settings.");
-                }
-            } catch (err) {
-                showToast("Failed to export settings: " + err.message, false);
-            }
-        }
-
-        async function restartTerminal() {
-            try {
-                await fetch('/api/restart', { method: 'POST' });
-            } catch (err) {
-                console.error("Restart terminal request completed with standard connection close.");
-            }
-        }
-
-        // Init
-        document.getElementById("btnPrev").style.visibility = "hidden";
-        toggleGitFields();
-        toggleBgInputs();
-        fetchSystemResources();
+        }));
+    });
     </script>
 </body>
 </html>

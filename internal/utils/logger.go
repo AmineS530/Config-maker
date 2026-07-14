@@ -1,3 +1,6 @@
+// SHARED UTILITY: This package is shared between the CLI interface (internal/cli)
+// and the Web server (internal/web). Modifying public APIs will impact both contexts.
+
 package utils
 
 import (

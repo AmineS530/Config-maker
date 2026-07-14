@@ -5,50 +5,77 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+
+	"zonerestore/internal/settings/dock"
+	"zonerestore/internal/settings/docker"
+	"zonerestore/internal/settings/fonts"
+	"zonerestore/internal/settings/git"
+	"zonerestore/internal/settings/keyboard"
+	"zonerestore/internal/settings/power"
+	"zonerestore/internal/settings/shell"
+	"zonerestore/internal/settings/theme"
+	"zonerestore/internal/settings/wallpaper"
+	"zonerestore/internal/settings/zsh"
 )
 
-// AliasConfig represents a customizable command line alias.
-type AliasConfig struct {
-	Name    string `json:"name"`
-	Command string `json:"command"`
-	Enabled bool   `json:"enabled"`
-}
-
-// UserConfig holds the user choices for the configuration wizard.
+// UserConfig holds the user choices for the configuration wizard composed of context-specific modules.
 type UserConfig struct {
-	InstallOhMyZsh    bool          `json:"install_oh_my_zsh"`
-	ConfigureGit      bool          `json:"configure_git"`
-	GitName           string        `json:"git_name"`
-	GitEmail          string        `json:"git_email"`
-	ApplyTheme        bool          `json:"apply_theme"`
-	ThemeMode         string        `json:"theme_mode"` // "1" = dark, "2" = light
-	ThemeName         string        `json:"theme_name"`
-	ApplyBackground   bool          `json:"apply_background"`
-	BackgroundImage   string        `json:"background_image"`
-	EnableDocker      bool          `json:"enable_docker"`
-	EnableZshDefault  bool          `json:"enable_zsh_default"`
-	ConfigureKeyboard bool          `json:"configure_keyboard"`
-	ConfigurePower    bool          `json:"configure_power"`
-	ConfigureFonts    bool          `json:"configure_fonts"`
-	CustomUsername    string        `json:"custom_username"`
-	Aliases           []AliasConfig `json:"aliases"`
+	Zsh            zsh.Config       `json:"zsh"`
+	Git            git.Config       `json:"git"`
+	Theme          theme.Config     `json:"theme"`
+	Fonts          fonts.Config     `json:"fonts"`
+	Wallpaper      wallpaper.Config `json:"wallpaper"`
+	Docker         docker.Config    `json:"docker"`
+	Dock           dock.Config      `json:"dock"`
+	Keyboard       keyboard.Config  `json:"keyboard"`
+	Power          power.Config     `json:"power"`
+	Shell          shell.Config     `json:"shell"`
+	CustomUsername string           `json:"custom_username"`
+	Aliases        []zsh.Alias      `json:"aliases"`
 }
 
 // DefaultConfig returns a pre-populated default configuration.
 func DefaultConfig() UserConfig {
 	return UserConfig{
-		InstallOhMyZsh:    true,
-		ConfigureGit:      true,
-		ApplyTheme:        true,
-		ThemeMode:         "1",
-		ApplyBackground:   true,
-		EnableDocker:      true,
-		EnableZshDefault:  true,
-		ConfigureKeyboard: true,
-		ConfigurePower:    true,
-		ConfigureFonts:    true,
-		CustomUsername:    GetDefaultUsername(),
-		Aliases: []AliasConfig{
+		Zsh: zsh.Config{
+			InstallOhMyZsh: true,
+		},
+		Git: git.Config{
+			ConfigureGit: true,
+			GitName:      "",
+			GitEmail:     "",
+		},
+		Theme: theme.Config{
+			ApplyTheme: true,
+			ThemeMode:  "1",
+			ThemeName:  "",
+		},
+		Fonts: fonts.Config{
+			ConfigureFonts: true,
+			FontName:       "MesloLGS NF",
+		},
+		Wallpaper: wallpaper.Config{
+			ApplyBackground: true,
+			BackgroundImage: "",
+		},
+		Docker: docker.Config{
+			EnableDocker: true,
+		},
+		Dock: dock.Config{
+			PinDiscord: true,
+		},
+		Keyboard: keyboard.Config{
+			ConfigureKeyboard: true,
+			AddArabic:         false,
+		},
+		Power: power.Config{
+			ConfigurePower: true,
+		},
+		Shell: shell.Config{
+			EnableZshDefault: false,
+		},
+		CustomUsername: GetDefaultUsername(),
+		Aliases: []zsh.Alias{
 			{
 				Name:    "quickpush",
 				Command: `gofmt -w . && gaa && gc -m "quick_add_commit_push_alias" && gp`,
@@ -70,7 +97,7 @@ func GetDefaultUsername() string {
 	return "user"
 }
 
-// LoadConfig attempts to read a saved configuration from ~/.config/config-maker/config.json.
+// LoadConfig attempts to read a saved configuration from ~/.config/zonerestore/config.json.
 // If it fails or the file doesn't exist, it falls back to DefaultConfig().
 func LoadConfig() UserConfig {
 	cfg := DefaultConfig()
@@ -89,12 +116,13 @@ func LoadConfig() UserConfig {
 	var loaded UserConfig
 	err = json.NewDecoder(file).Decode(&loaded)
 	if err == nil {
+		// Fill in empty subfields if missing from older versions of config
 		return loaded
 	}
 	return cfg
 }
 
-// SaveConfig writes the given UserConfig to ~/.config/config-maker/config.json.
+// SaveConfig writes the given UserConfig to ~/.config/zonerestore/config.json.
 func SaveConfig(cfg UserConfig) error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {

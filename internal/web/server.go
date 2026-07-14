@@ -20,6 +20,7 @@ func StartServer(port int) error {
 	mux.HandleFunc("/api/restart", HandleRestart)
 	mux.HandleFunc("/api/select-wallpaper", HandleSelectWallpaper)
 	mux.HandleFunc("/api/wallpaper/preview", HandleWallpaperPreview)
+	mux.HandleFunc("/api/fonts/file", HandleFontFile)
 	mux.HandleFunc("/api/config/default", HandleDefaultConfig)
 	mux.HandleFunc("/api/config/import", HandleImportConfig)
 	mux.HandleFunc("/js/alpine.min.js", HandleAlpineJS)

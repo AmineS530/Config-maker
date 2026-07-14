@@ -2,13 +2,15 @@ package main
 
 import (
 	"bufio"
-	"zonerestore/internal/cli"
-	"zonerestore/internal/config"
-	"zonerestore/internal/web"
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+	"zonerestore/internal/cli"
+	"zonerestore/internal/config"
+	"zonerestore/internal/themes"
+	"zonerestore/internal/web"
 )
 
 func main() {
@@ -16,6 +18,10 @@ func main() {
 	cliFlag := flag.Bool("cli", false, "Start the interactive CLI wizard directly")
 	portFlag := flag.Int("port", 8080, "Port for the local web interface")
 	flag.Parse()
+
+	// Initialize and prepare themes repository
+	ctx := context.Background()
+	_, _ = themes.EnsureThemes(ctx, os.Stdout)
 
 	// If a flag was set, bypass the menu and run that mode directly
 	if *webFlag {
@@ -45,12 +51,14 @@ func main() {
 			cli.ClearTerminal()
 			cfg := config.LoadConfig()
 			fmt.Println("\n\033[0;32m[SUCCESS] Configuration loaded from ~/.config/zonerestore/config.json:\033[0m")
-			fmt.Printf("  • Install Oh-My-Zsh:       %t\n", cfg.InstallOhMyZsh)
-			fmt.Printf("  • Configure Git global:    %t (Name: %q, Email: %q)\n", cfg.ConfigureGit, cfg.GitName, cfg.GitEmail)
-			fmt.Printf("  • Apply Desktop Theme:     %t (Theme: %q, Mode: %q)\n", cfg.ApplyTheme, cfg.ThemeName, cfg.ThemeMode)
-			fmt.Printf("  • Apply Background Wallpaper: %t (Image: %q)\n", cfg.ApplyBackground, cfg.BackgroundImage)
-			fmt.Printf("  • Install Docker Rootless: %t\n", cfg.EnableDocker)
-			fmt.Printf("  • Set Zsh Default Shell:   %t\n", cfg.EnableZshDefault)
+			fmt.Printf("  • Install Oh-My-Zsh:       %t\n", cfg.Zsh.InstallOhMyZsh)
+			fmt.Printf("  • Configure Git global:    %t (Name: %q, Email: %q)\n", cfg.Git.ConfigureGit, cfg.Git.GitName, cfg.Git.GitEmail)
+			fmt.Printf("  • Apply Desktop Theme:     %t (Theme: %q, Mode: %q)\n", cfg.Theme.ApplyTheme, cfg.Theme.ThemeName, cfg.Theme.ThemeMode)
+			fmt.Printf("  • Apply Background Wallpaper: %t (Image: %q)\n", cfg.Wallpaper.ApplyBackground, cfg.Wallpaper.BackgroundImage)
+			fmt.Printf("  • Install Docker Rootless: %t\n", cfg.Docker.EnableDocker)
+			fmt.Printf("  • Set Zsh Default Shell:   %t\n", cfg.Shell.EnableZshDefault)
+			fmt.Printf("  • Pin Discord to favorites: %t\n", cfg.Dock.PinDiscord)
+			fmt.Printf("  • Dual keyboard layout:    %t (Add Arabic: %t)\n", cfg.Keyboard.ConfigureKeyboard, cfg.Keyboard.AddArabic)
 			fmt.Print("\nPress Enter to return to menu...")
 			_, _ = reader.ReadString('\n')
 		case 3: // Export Default Settings (Reset file)
