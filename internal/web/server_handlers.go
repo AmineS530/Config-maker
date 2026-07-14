@@ -51,16 +51,20 @@ func HandleStream(w http.ResponseWriter, r *http.Request) {
 	_, _ = fmt.Fprintln(sseWriter, "Finished successfully!")
 }
 
-// HandleRestart shuts down terminals and launches zenity prompts in the system.
+// HandleRestart signals the server to shut down gracefully after sending a response.
+// The browser receives the response, shows a closing screen, then the server exits.
 func HandleRestart(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(`{"status":"success"}`))
+	_, _ = w.Write([]byte(`{"status":"closing"}`))
 
-	// Run in background so the web server finishes sending the response
+	// Signal shutdown in background — gives the response time to reach the browser
 	go func() {
 		executor.FinishSetup(os.Stdout)
+		shutdownCh <- struct{}{}
 	}()
 }
+
 
 // getSystemThemes lists GTK themes from /usr/share/themes based on light/dark mode preference.
 func getSystemThemes(mode string) []string {

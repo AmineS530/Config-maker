@@ -140,12 +140,14 @@ func (m tuiModel) View() string {
 	case 4: // Font Selection Setup
 		if !m.applyFonts {
 			stepContent = fmt.Sprintf(
-				" [Step 4/7] Custom Monospace Coding Fonts\n\n"+
-					" %sWould you like to install custom coding fonts?%s\n\n"+
+				" [Step 4/7] Fonts\n\n"+
+					"   %s⚠  Terminal font is always: MesloLGS NF Regular 12 (locked)%s\n\n"+
+					" %sWould you like to install fonts and set a display font?%s\n\n"+
 					"   %s\n   %s",
+				utils.Cyan, utils.Reset,
 				utils.Yellow, utils.Reset,
-				renderToggleOption("Yes, install monospace programmer fonts", m.applyFonts),
-				renderToggleOption("No, skip font installation", !m.applyFonts),
+				renderToggleOption("Yes, install & configure fonts", m.applyFonts),
+				renderToggleOption("No, skip font setup", !m.applyFonts),
 			)
 		} else {
 			var list string
@@ -168,11 +170,14 @@ func (m tuiModel) View() string {
 			}
 
 			stepContent = fmt.Sprintf(
-				" [Step 4/7] Custom Monospace Coding Fonts\n\n"+
-					"   Select font to apply to your terminal:\n%s\n"+
+				" [Step 4/7] Fonts\n\n"+
+					"   %s⚠  Terminal font (locked): MesloLGS NF Regular 12%s\n\n"+
+					"   Select a display/UI font for GNOME (optional):\n%s\n"+
+					"   [System Default = Ubuntu 11]\n\n"+
 					"   %s",
+				utils.Cyan, utils.Reset,
 				list,
-				helpStyle.Render("Use Up/Down to navigate list. Enter to choose and proceed."),
+				helpStyle.Render("Up/Down to navigate. Enter to choose and proceed."),
 			)
 		}
 
@@ -286,13 +291,14 @@ func (m tuiModel) View() string {
 			}
 			summary.WriteString(fmt.Sprintf("   └─ Theme: %s (%s)\n", theme, mode))
 		}
-		summary.WriteString(renderSummaryRow("Install Custom Fonts", m.applyFonts) + "\n")
+		summary.WriteString(renderSummaryRow("Install & Configure Fonts", m.applyFonts) + "\n")
 		if m.applyFonts {
-			font := "MesloLGS NF"
-			if len(m.availableFonts) > 0 {
-				font = m.availableFonts[m.fontCursor]
+			summary.WriteString(fmt.Sprintf("   └─ Terminal font: MesloLGS NF Regular 12 (locked)\n"))
+			displayFont := "System Default (Ubuntu 11)"
+			if len(m.availableFonts) > 0 && m.fontCursor > 0 {
+				displayFont = m.availableFonts[m.fontCursor]
 			}
-			summary.WriteString(fmt.Sprintf("   └─ Font:  %s\n", font))
+			summary.WriteString(fmt.Sprintf("   └─ Display font: %s\n", displayFont))
 		}
 		summary.WriteString(renderSummaryRow("Apply Wallpaper", m.applyBg) + "\n")
 		if m.applyBg {

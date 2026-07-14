@@ -145,11 +145,13 @@ func RunWizard() {
 		}
 	}
 
-	// Resolve the font configuration selection
-	if initCfg.Fonts.FontName != "" {
+	// Resolve the display font selection cursor from saved config
+	// FontName (terminal) is always MesloLGS NF — never changed by the picker
+	m.cfg.Fonts.FontName = "MesloLGS NF"
+	if initCfg.Fonts.DisplayFontName != "" {
 		for idx, f := range repoFonts {
-			if f == initCfg.Fonts.FontName {
-				m.fontCursor = idx
+			if f == initCfg.Fonts.DisplayFontName {
+				m.fontCursor = idx + 1 // +1 because cursor 0 = "System Default"
 				break
 			}
 		}
@@ -435,10 +437,13 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.fontCursor++
 					}
 				case "enter":
-					if len(m.availableFonts) > 0 {
-						m.cfg.Fonts.FontName = m.availableFonts[m.fontCursor]
+					// Terminal font is always MesloLGS NF — locked
+					m.cfg.Fonts.FontName = "MesloLGS NF"
+					// cursor 0 means "System Default", cursor > 0 means a repo font
+					if m.fontCursor > 0 && len(m.availableFonts) >= m.fontCursor {
+						m.cfg.Fonts.DisplayFontName = m.availableFonts[m.fontCursor-1]
 					} else {
-						m.cfg.Fonts.FontName = "MesloLGS NF"
+						m.cfg.Fonts.DisplayFontName = "" // empty = system default (Ubuntu 11)
 					}
 					m.cfg.Fonts.ConfigureFonts = true
 					m.step = 5

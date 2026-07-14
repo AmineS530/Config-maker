@@ -582,9 +582,16 @@ const IndexTemplate = `
                                     <p>Reset and configure every setting from recommended defaults.</p>
                                 </div>
                             </div>
-                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
                                 <button class="btn btn-secondary" @click="loadDefault()">↺ Reset Defaults</button>
-                                <button class="btn btn-secondary" @click="importJSON()">📂 Import JSON...</button>
+                                <button class="btn btn-secondary" @click="loadFromDisk()">💾 Load Saved</button>
+                                <!-- Hidden file input for JSON upload -->
+                                <label class="btn btn-secondary" style="cursor:pointer;" title="Upload a config JSON file from your computer">
+                                    📂 Upload JSON
+                                    <input type="file" id="config-file-input" accept=".json,application/json"
+                                           style="display:none;"
+                                           @change="uploadConfig($event)">
+                                </label>
                             </div>
                         </div>
 
@@ -678,33 +685,50 @@ const IndexTemplate = `
                         <!-- ── STEP 4 – Fonts ── -->
                         <div id="step-4" class="step-panel" :class="{'active': step===4}">
                             <div>
-                                <h1 class="step-title">Monospace Developer Fonts</h1>
-                                <p class="step-sub">Install and apply a custom coding font family from the ZoneRestoreThemes repository.</p>
+                                <h1 class="step-title">Fonts</h1>
+                                <p class="step-sub">Install fonts from the themes repository and choose a display font for your GNOME desktop.</p>
                             </div>
+
+                            <!-- Locked terminal font notice -->
+                            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.2);border-radius:10px;">
+                                <span style="font-size:1.3rem;">🔒</span>
+                                <div>
+                                    <div style="font-size:.85rem;color:var(--muted);margin-bottom:2px;">Terminal font — always applied</div>
+                                    <div style="font-family:'MesloLGS NF Regular','JetBrains Mono',monospace;font-size:1rem;color:var(--accent);font-weight:600;">MesloLGS NF Regular 12</div>
+                                    <div style="font-size:.75rem;color:var(--muted);margin-top:2px;">Applied to all GNOME Terminal profiles and system monospace font.</div>
+                                </div>
+                            </div>
+
                             <div class="toggle-row" @click="cfg.fonts.configure_fonts=!cfg.fonts.configure_fonts">
-                                <h4>Install fonts from themes repository</h4>
+                                <h4>Install &amp; configure fonts</h4>
                                 <span class="toggle-badge" :class="cfg.fonts.configure_fonts?'on':'off'" x-text="cfg.fonts.configure_fonts?'Enabled':'Disabled'"></span>
                             </div>
                             <div x-show="cfg.fonts.configure_fonts" x-transition style="display:flex;flex-direction:column;gap:12px;">
-                                <p class="sec-label">Font families available
+                                <p class="sec-label">Choose a display font for GNOME interface
                                     <span x-show="fonts.length === 0 && !fontsLoading" style="color:var(--yellow)"> — none found in themes/fonts/</span>
                                 </p>
                                 <div x-show="fontsLoading" style="color:var(--muted);font-size:.9rem;padding:16px 0;">Loading fonts from repository…</div>
                                 <div class="grid-auto" x-show="!fontsLoading">
+                                    <!-- "System Default" option -->
+                                    <div class="font-card" :class="{'chosen': cfg.fonts.display_font_name===''}" @click="cfg.fonts.display_font_name=''">
+                                        <div class="font-card-name">System Default</div>
+                                        <div class="font-card-sample" style="font-family:sans-serif;">Ubuntu — System UI font</div>
+                                    </div>
                                     <template x-if="fonts.length === 0">
-                                        <div class="font-empty">No font folders found in <code>themes/fonts/</code>. Add font subdirectories to the ZoneRestoreThemes repo.</div>
+                                        <div class="font-empty">No additional fonts found in <code>themes/fonts/</code>.</div>
                                     </template>
                                     <template x-for="f in fonts" :key="f.name">
-                                        <div class="font-card" :class="{'chosen': cfg.fonts.font_name===f.name}" @click="cfg.fonts.font_name=f.name">
+                                        <div class="font-card" :class="{'chosen': cfg.fonts.display_font_name===f.name}" @click="cfg.fonts.display_font_name=f.name">
                                             <div class="font-card-name" x-text="f.name"></div>
                                             <div class="font-card-sample"
-                                                 :style="'font-family:' + JSON.stringify(f.name) + ',monospace'"
-                                                 x-text="f.name + ' — const x = 42;'"></div>
+                                                 :style="'font-family:' + JSON.stringify(f.name) + ',sans-serif'"
+                                                 x-text="f.name + ' — The quick brown fox'"></div>
                                         </div>
                                     </template>
                                 </div>
                             </div>
                         </div>
+
 
                         <!-- ── STEP 5 – Wallpaper ── -->
                         <div id="step-5" class="step-panel" :class="{'active': step===5}">
@@ -748,6 +772,23 @@ const IndexTemplate = `
                                         <input id="custom-wp" class="text-input" type="text" x-model="cfg.wallpaper.background_image"
                                                placeholder="/home/user/Pictures/wallpaper.jpg">
                                         <button class="btn btn-secondary" @click="browseWallpaper()">Browse…</button>
+                                    </div>
+                                </div>
+
+                                <!-- ── Persistent preview: shown for any selected wallpaper ── -->
+                                <div x-show="cfg.wallpaper.background_image" x-transition style="margin-top:4px;">
+                                    <p class="sec-label" style="margin-bottom:6px;">Preview</p>
+                                    <div style="position:relative;width:100%;max-width:480px;border-radius:10px;overflow:hidden;border:2px solid var(--border);box-shadow:0 4px 24px rgba(0,0,0,.4);">
+                                        <img
+                                            :src="wpSource==='repo'
+                                                ? '/api/wallpaper/preview?name=' + encodeURIComponent(cfg.wallpaper.background_image)
+                                                : '/api/wallpaper/preview?path=' + encodeURIComponent(cfg.wallpaper.background_image)"
+                                            :alt="cfg.wallpaper.background_image"
+                                            style="width:100%;height:220px;object-fit:cover;display:block;"
+                                            @error="$el.style.opacity='0.2'"
+                                            @load="$el.style.opacity='1'"
+                                            style="transition:opacity .3s;">
+                                        <div style="position:absolute;bottom:0;left:0;right:0;padding:6px 10px;background:linear-gradient(transparent,rgba(0,0,0,.7));font-size:.78rem;color:#fff;" x-text="cfg.wallpaper.background_image.split('/').pop()"></div>
                                     </div>
                                 </div>
                             </div>
@@ -848,7 +889,10 @@ const IndexTemplate = `
                                     <div class="s-label">🔤 Install repo fonts</div>
                                     <span class="s-badge" :class="cfg.fonts.configure_fonts?'on':'off'" x-text="cfg.fonts.configure_fonts?'Yes':'No'"></span>
                                 </div>
-                                <div class="s-sub" x-show="cfg.fonts.configure_fonts && cfg.fonts.font_name" x-text="'Font family: ' + cfg.fonts.font_name"></div>
+                                <div class="s-sub" x-show="cfg.fonts.configure_fonts">
+                                    <span style="color:var(--accent);">Terminal:</span> MesloLGS NF Regular 12 (locked)
+                                    <span x-show="cfg.fonts.display_font_name" x-text="' · Display: ' + cfg.fonts.display_font_name"></span>
+                                </div>
                                 <div class="s-row">
                                     <div class="s-label">🖼 Apply wallpaper</div>
                                     <span class="s-badge" :class="cfg.wallpaper.apply_background?'on':'off'" x-text="cfg.wallpaper.apply_background?'Yes':'No'"></span>
@@ -895,9 +939,17 @@ const IndexTemplate = `
                             </div>
                             <div x-show="execFinished && !execErr" x-transition style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
                                 <p style="color:var(--green);font-weight:700;">✔ Setup completed successfully!</p>
-                                <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                                    <button class="btn btn-primary" @click="finish(true)">💾 Save &amp; Restart Terminal</button>
-                                    <button class="btn btn-secondary" @click="finish(false)">Restart Terminal only</button>
+                                <!-- Action buttons — hidden once closing starts -->
+                                <div x-show="!isClosing" style="display:flex;gap:10px;flex-wrap:wrap;">
+                                    <button class="btn btn-primary" @click="finish(true)">💾 Save to disk &amp; Download</button>
+                                    <button class="btn btn-secondary" @click="finish(false)">🔄 Restart Terminal</button>
+                                </div>
+                                <!-- Closing screen shown after finish() is triggered -->
+                                <div x-show="isClosing" x-transition style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:24px 0;">
+                                    <div style="font-size:2.4rem;">✅</div>
+                                    <p style="font-size:1.1rem;font-weight:700;color:var(--accent);">All done! Closing ZoneRestore…</p>
+                                    <p style="color:var(--muted);font-size:.9rem;">Restarting your terminal. You can close this tab now.</p>
+                                    <div class="pulse" style="width:10px;height:10px;"></div>
                                 </div>
                             </div>
                             <div x-show="execFinished && execErr" x-transition style="margin-top:10px;">
@@ -936,7 +988,7 @@ const IndexTemplate = `
                     </div>
                     <div class="pill" :class="{'on': cfg.fonts.configure_fonts}">
                         <div class="pill-dot"></div>
-                        <span x-text="cfg.fonts.configure_fonts && cfg.fonts.font_name ? cfg.fonts.font_name : 'Fonts'"></span>
+                        <span x-text="cfg.fonts.configure_fonts ? (cfg.fonts.display_font_name || 'MesloLGS NF') : 'Fonts'"></span>
                     </div>
                     <div class="pill" :class="{'on': cfg.wallpaper.apply_background}">
                         <div class="pill-dot"></div> Wallpaper
@@ -994,7 +1046,8 @@ const IndexTemplate = `
                 },
                 fonts: {
                     configure_fonts: true,
-                    font_name: ''
+                    font_name: 'MesloLGS NF',  // locked terminal font — always MesloLGS
+                    display_font_name: ''       // user-selectable display/UI font
                 },
                 wallpaper: {
                     apply_background: true,
@@ -1038,6 +1091,7 @@ const IndexTemplate = `
             logs:         [],
             execFinished: false,
             execErr:      false,
+            isClosing:    false,
 
             // ── INIT ──
             async init() {
@@ -1072,9 +1126,8 @@ const IndexTemplate = `
                     if (!this.cfg.theme.theme_name) {
                         this.cfg.theme.theme_name = this.themeList[0] || 'Yaru-dark';
                     }
-                    if (!this.cfg.fonts.font_name && this.fonts.length > 0) {
-                        this.cfg.fonts.font_name = this.fonts[0].name;
-                    }
+                    // display_font_name: don't auto-select; leave empty = system default
+                    // font_name (terminal) is always MesloLGS NF — never changed by the picker
                     if (!this.cfg.wallpaper.background_image && this.wallpapers.length > 0) {
                         this.cfg.wallpaper.background_image = this.wallpapers[0];
                     }
@@ -1091,7 +1144,13 @@ const IndexTemplate = `
                 fonts.forEach(f => {
                     if (f.files && f.files.length > 0) {
                         const file = f.files[0];
-                        const url = '/api/fonts/file?font=' + encodeURIComponent(f.name) + '&file=' + encodeURIComponent(file);
+                        // flat_file fonts live directly in themes/fonts/, not in a subdirectory
+                        let url = '/api/fonts/file?file=' + encodeURIComponent(file);
+                        if (!f.flat_file) {
+                            url += '&font=' + encodeURIComponent(f.name);
+                        } else {
+                            url += '&flat=1';
+                        }
                         css += '@font-face { font-family: "' + f.name + '"; src: url("' + url + '"); }\n';
                     }
                 });
@@ -1111,7 +1170,8 @@ const IndexTemplate = `
                 this.cfg.theme.theme_mode       = d.theme?.theme_mode       || '1';
                 this.cfg.theme.theme_name       = d.theme?.theme_name       || '';
                 this.cfg.fonts.configure_fonts  = d.fonts?.configure_fonts  ?? true;
-                this.cfg.fonts.font_name        = d.fonts?.font_name        || '';
+                this.cfg.fonts.font_name         = 'MesloLGS NF'; // always locked
+                this.cfg.fonts.display_font_name = d.fonts?.display_font_name || '';
                 this.cfg.wallpaper.apply_background = d.wallpaper?.apply_background ?? true;
                 this.cfg.docker.enable_docker   = d.docker?.enable_docker   ?? true;
                 this.cfg.dock.pin_discord       = d.dock?.pin_discord       ?? true;
@@ -1170,18 +1230,50 @@ const IndexTemplate = `
                 } catch(e) {}
             },
 
-            async importJSON() {
+            // Upload a JSON config file from the user's computer via <input type="file">
+            async uploadConfig(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const form = new FormData();
+                form.append('config', file);
+                try {
+                    const r = await fetch('/api/config/upload', { method: 'POST', body: form });
+                    if (r.ok) {
+                        const d = await r.json();
+                        if (d.status === 'success') {
+                            this.applyRemoteCfg(d.config);
+                            this.toast('📂 Config imported from file!');
+                            this.step = 1;
+                        } else {
+                            this.toast('⚠ Import failed: ' + (d.message || d.status));
+                        }
+                    }
+                } catch(e) {
+                    this.toast('⚠ Upload error: ' + e.message);
+                }
+                // Reset input so the same file can be re-selected if needed
+                event.target.value = '';
+            },
+
+            // Load the previously saved config from ~/.config/zonerestore/config.json on the server
+            async loadFromDisk() {
                 try {
                     const r = await fetch('/api/config/import');
                     if (r.ok) {
                         const d = await r.json();
                         if (d.status === 'success') {
                             this.applyRemoteCfg(d.config);
-                            this.toast('📂 Settings imported');
+                            this.toast('💾 Loaded saved settings from disk');
                             this.step = 1;
+                        } else if (d.status === 'not_found') {
+                            this.toast('ℹ No saved config found on disk');
+                        } else {
+                            this.toast('⚠ Load failed: ' + (d.message || d.status));
                         }
                     }
-                } catch(e) {}
+                } catch(e) {
+                    this.toast('⚠ Error loading from disk: ' + e.message);
+                }
             },
 
             async browseWallpaper() {
@@ -1254,18 +1346,42 @@ const IndexTemplate = `
 
             // ── FINISH ──
             async finish(save) {
+                this.isClosing = true;
+
                 if (save) {
                     try {
-                        await fetch('/api/export', {
+                        // 1. Persist to ~/.config/zonerestore/config.json on disk
+                        const saveRes = await fetch('/api/save', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(this.cfg)
                         });
-                        this.toast('💾 Config saved!');
-                    } catch(e) {}
+                        if (saveRes.ok) {
+                            this.toast('💾 Config saved!');
+                        }
+                        // 2. Trigger browser file download of config JSON
+                        const a = document.createElement('a');
+                        a.href = '/api/config/download';
+                        a.download = 'zonerestore-config.json';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    } catch(e) {
+                        this.toast('⚠ Could not save config: ' + e.message);
+                    }
                 }
+
+                // Signal server to run FinishSetup and shut down
                 await fetch('/api/restart', { method: 'POST' }).catch(() => {});
-                this.toast('🔄 Reloading terminal…');
+
+                // Give the user 2s to see the closing screen, then close the tab
+                setTimeout(() => {
+                    window.close();
+                    // Fallback: if window.close() is blocked, show a manual close hint
+                    setTimeout(() => {
+                        this.toast('ℹ Setup complete — you can close this tab now.');
+                    }, 500);
+                }, 2000);
             },
 
             // ── TOAST ──

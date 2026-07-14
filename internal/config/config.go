@@ -51,8 +51,9 @@ func DefaultConfig() UserConfig {
 			ThemeName:  "",
 		},
 		Fonts: fonts.Config{
-			ConfigureFonts: true,
-			FontName:       "MesloLGS NF",
+			ConfigureFonts:  true,
+			FontName:        "MesloLGS NF", // locked terminal font — always applied
+			DisplayFontName: "",            // display font: empty = system default (Ubuntu 11)
 		},
 		Wallpaper: wallpaper.Config{
 			ApplyBackground: true,

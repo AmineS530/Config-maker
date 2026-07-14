@@ -66,8 +66,9 @@ func (sw *SSEWriter) Write(p []byte) (n int, err error) {
 
 // FontDetail holds details about a system/downloaded developer monospace font family.
 type FontDetail struct {
-	Name  string   `json:"name"`
-	Files []string `json:"files"`
+	Name     string   `json:"name"`
+	Files    []string `json:"files"`
+	FlatFile bool     `json:"flat_file"` // true when font files live directly in themes/fonts/ (not in a subdirectory)
 }
 
 // ResourcesResponse holds response metadata returned by HandleResources.

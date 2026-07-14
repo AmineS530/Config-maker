@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -8,21 +9,28 @@ import (
 	"time"
 )
 
+// shutdownCh is signaled by HandleRestart to trigger a graceful server shutdown.
+var shutdownCh = make(chan struct{}, 1)
+
 // StartServer starts the HTTP server on the specified port and automatically opens the browser.
+// It returns when the server shuts down (either from an error or from HandleRestart).
 func StartServer(port int) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", HandleIndex)
 	mux.HandleFunc("/api/resources", HandleResources)
 	mux.HandleFunc("/api/config", HandleConfig)
 	mux.HandleFunc("/api/apply", HandleApply)
-	mux.HandleFunc("/api/export", HandleExport)
+	mux.HandleFunc("/api/save", HandleSave)
+	mux.HandleFunc("/api/export", HandleExport) // alias for /api/save, kept for SSE executor compat
+	mux.HandleFunc("/api/config/download", HandleDownload)
+	mux.HandleFunc("/api/config/upload", HandleUploadConfig)
+	mux.HandleFunc("/api/config/import", HandleImportConfig) // loads saved file from disk
+	mux.HandleFunc("/api/config/default", HandleDefaultConfig)
 	mux.HandleFunc("/api/stream", HandleStream)
 	mux.HandleFunc("/api/restart", HandleRestart)
 	mux.HandleFunc("/api/select-wallpaper", HandleSelectWallpaper)
 	mux.HandleFunc("/api/wallpaper/preview", HandleWallpaperPreview)
 	mux.HandleFunc("/api/fonts/file", HandleFontFile)
-	mux.HandleFunc("/api/config/default", HandleDefaultConfig)
-	mux.HandleFunc("/api/config/import", HandleImportConfig)
 	mux.HandleFunc("/js/alpine.min.js", HandleAlpineJS)
 
 	addr := fmt.Sprintf("127.0.0.1:%d", port)
@@ -40,6 +48,8 @@ func StartServer(port int) error {
 		}
 	}
 
+	srv := &http.Server{Handler: mux}
+
 	fmt.Printf("\nStarting web interface...\n")
 	fmt.Printf("Open: %s\n\n", url)
 
@@ -49,7 +59,20 @@ func StartServer(port int) error {
 		openBrowser(url)
 	}()
 
-	return http.Serve(listener, mux)
+	// Watch for shutdown signal from HandleRestart
+	go func() {
+		<-shutdownCh
+		// Give the browser a moment to receive the final HTTP response before we close
+		time.Sleep(1200 * time.Millisecond)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		_ = srv.Shutdown(ctx)
+	}()
+
+	if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
+		return err
+	}
+	return nil
 }
 
 // openBrowser attempts to launch the default web browser on Linux.
