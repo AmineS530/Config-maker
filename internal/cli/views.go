@@ -252,8 +252,6 @@ func (m tuiModel) View() string {
 				"     %s\n\n"+
 				"   %s Add Arabic layout to keyboard list?%s\n"+
 				"     %s\n\n"+
-				"   %s Configure standard power sleep settings?%s\n"+
-				"     %s\n\n"+
 				"   %s",
 			renderActiveLabel("[Option A]", m.focusedInput == 0), utils.Reset,
 			renderHorizontalOptions([]string{"Yes", "No"}, getYesNoIndex(!m.enableDocker)),
@@ -266,7 +264,6 @@ func (m tuiModel) View() string {
 			renderActiveLabel("[Option E]", m.focusedInput == 4), utils.Reset,
 			renderHorizontalOptions([]string{"Yes", "No"}, getYesNoIndex(!m.addArabic)),
 			renderActiveLabel("[Option F]", m.focusedInput == 5), utils.Reset,
-			renderHorizontalOptions([]string{"Yes", "No"}, getYesNoIndex(!m.configurePower)),
 			helpStyle.Render("Press Up/Down/Tab to switch, Left/Right/Space to toggle, Enter to confirm."),
 		)
 
@@ -319,8 +316,6 @@ func (m tuiModel) View() string {
 		if m.configureKeyboard {
 			summary.WriteString(fmt.Sprintf("   └─ Layouts: US + FR%s\n", map[bool]string{true: " + AR (Arabic)", false: ""}[m.addArabic]))
 		}
-		summary.WriteString(renderSummaryRow("Configure Sleep settings", m.configurePower) + "\n\n")
-
 		summary.WriteString(helpStyle.Render("Press Enter to execute the configuration updates, or Esc/q to quit."))
 		stepContent = summary.String()
 

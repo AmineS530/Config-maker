@@ -25,7 +25,7 @@ func Apply(cfg Config, logger *utils.Logger, out io.Writer) error {
 		logger.Warning("Failed to configure keyboard layouts: %v", err)
 	} else {
 		if cfg.AddArabic {
-			logger.Success("Gnome keyboard layouts configured: US + FR + AR (Arabic).")
+			logger.Success("Gnome keyboard layouts configured: US + FR + AR .")
 		} else {
 			logger.Success("Gnome keyboard layouts configured: US + FR.")
 		}

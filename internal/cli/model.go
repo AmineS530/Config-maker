@@ -95,7 +95,6 @@ type tuiModel struct {
 	pinDiscord        bool // Option C
 	configureKeyboard bool // Option D
 	addArabic         bool // Option E
-	configurePower    bool // Option F
 
 	exportPrompt     bool // true = Yes, false = No
 	importedSettings bool // true if settings were imported at Step 0

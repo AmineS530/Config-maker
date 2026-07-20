@@ -67,7 +67,7 @@ func DefaultConfig() UserConfig {
 		},
 		Keyboard: keyboard.Config{
 			ConfigureKeyboard: true,
-			AddArabic:         false,
+			AddArabic:         true,
 		},
 		Power: power.Config{
 			ConfigurePower: true,

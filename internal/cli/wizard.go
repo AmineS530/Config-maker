@@ -113,7 +113,6 @@ func RunWizard() {
 		pinDiscord:        initCfg.Dock.PinDiscord,
 		configureKeyboard: initCfg.Keyboard.ConfigureKeyboard,
 		addArabic:         initCfg.Keyboard.AddArabic,
-		configurePower:    initCfg.Power.ConfigurePower,
 
 		exportPrompt: true,
 
@@ -279,7 +278,6 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.pinDiscord = m.cfg.Dock.PinDiscord
 					m.configureKeyboard = m.cfg.Keyboard.ConfigureKeyboard
 					m.addArabic = m.cfg.Keyboard.AddArabic
-					m.configurePower = m.cfg.Power.ConfigurePower
 					m.gitNameInput.SetValue(m.cfg.Git.GitName)
 					m.gitEmailInput.SetValue(m.cfg.Git.GitEmail)
 					if m.cfg.Wallpaper.BackgroundImage != "" {
@@ -550,8 +548,6 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.configureKeyboard = !m.configureKeyboard
 				case 4:
 					m.addArabic = !m.addArabic
-				case 5:
-					m.configurePower = !m.configurePower
 				}
 			case "enter":
 				m.cfg.Zsh.InstallOhMyZsh = m.ohMyZshChoice
@@ -564,7 +560,6 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cfg.Dock.PinDiscord = m.pinDiscord
 				m.cfg.Keyboard.ConfigureKeyboard = m.configureKeyboard
 				m.cfg.Keyboard.AddArabic = m.addArabic
-				m.cfg.Power.ConfigurePower = m.configurePower
 				m.step = 7
 			}
 

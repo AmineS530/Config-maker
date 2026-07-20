@@ -851,16 +851,7 @@ const IndexTemplate = `
                                     </div>
                                     <span class="toggle-badge" :class="cfg.keyboard.add_arabic?'on':'off'" x-text="cfg.keyboard.add_arabic?'On':'Off'"></span>
                                 </div>
-                                <div class="toggle-row" @click="cfg.power.configure_power=!cfg.power.configure_power">
-                                    <div style="display:flex;align-items:center;gap:10px;">
-                                        <span>🔋</span>
-                                        <div>
-                                            <h4>Power management</h4>
-                                            <div style="font-size:.8rem;color:var(--muted);margin-top:2px;">Sets sleep timeout to 1.5 hours via gsettings</div>
-                                        </div>
-                                    </div>
-                                    <span class="toggle-badge" :class="cfg.power.configure_power?'on':'off'" x-text="cfg.power.configure_power?'On':'Off'"></span>
-                                </div>
+        
                             </div>
                         </div>
 
@@ -915,10 +906,6 @@ const IndexTemplate = `
                                     <span class="s-badge" :class="cfg.keyboard.configure_keyboard?'on':'off'" x-text="cfg.keyboard.configure_keyboard?'Yes':'No'"></span>
                                 </div>
                                 <div class="s-sub" x-show="cfg.keyboard.configure_keyboard" x-text="'Layouts: US + FR' + (cfg.keyboard.add_arabic ? ' + AR (Arabic)' : '')"></div>
-                                <div class="s-row">
-                                    <div class="s-label">🔋 Power management</div>
-                                    <span class="s-badge" :class="cfg.power.configure_power?'on':'off'" x-text="cfg.power.configure_power?'Yes':'No'"></span>
-                                </div>
                             </div>
                         </div>
 
@@ -1177,7 +1164,6 @@ const IndexTemplate = `
                 this.cfg.dock.pin_discord       = d.dock?.pin_discord       ?? true;
                 this.cfg.keyboard.configure_keyboard = d.keyboard?.configure_keyboard ?? true;
                 this.cfg.keyboard.add_arabic    = d.keyboard?.add_arabic    ?? false;
-                this.cfg.power.configure_power  = d.power?.configure_power  ?? true;
                 this.cfg.shell.enable_zsh_default = d.shell?.enable_zsh_default ?? false;
                 this.cfg.custom_username        = d.custom_username         || '';
                 this.cfg.aliases                = d.aliases                 || [];
